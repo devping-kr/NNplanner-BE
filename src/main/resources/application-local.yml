@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USER}
+    password: ${LOCAL_DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+    open-in-view: false
+
+  data:
+    mongodb:
+      port: 27017
+      database: ${LOCAL_MONGODB_URL}
+      username: ${LOCAL_MONGODB_USER}
+      password: ${LOCAL_MONGODB_PASSWORD}
+
+jwt:
+  secret:
+    expiration-time: 60 * 60 * 1000L
+    key: ${JWT_SECRET_KEY}
