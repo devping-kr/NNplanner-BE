@@ -11,4 +11,4 @@ jobs:
         with:
           args: "--replace --aosp"
           commit-message: "format: Google Java Format"
-					github-token: ${{ secrets.GH_TOKEN }}
+	  github-token: ${{ secrets.GH_TOKEN }}
