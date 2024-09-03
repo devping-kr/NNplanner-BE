@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 
 @Getter
-public class AuthRequestDTO {
+public class AuthSignRequestDTO {
 
     @NotBlank
     private String username;
