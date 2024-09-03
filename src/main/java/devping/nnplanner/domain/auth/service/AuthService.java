@@ -1,6 +1,6 @@
 package devping.nnplanner.domain.auth.service;
 
-import devping.nnplanner.domain.auth.dto.request.AuthRequestDTO;
+import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
 import devping.nnplanner.domain.auth.entity.User;
 import devping.nnplanner.domain.auth.repository.EmailRepository;
 import devping.nnplanner.domain.auth.repository.UserRepository;
@@ -20,30 +20,30 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final EmailRepository emailRepository;
-    
-    @Transactional
-    public void signUp(AuthRequestDTO authRequestDTO) {
 
-        if (userRepository.existsByEmail(authRequestDTO.getEmail())) {
+    @Transactional
+    public void signUp(AuthSignRequestDTO authSignRequestDTO) {
+
+        if (userRepository.existsByEmail(authSignRequestDTO.getEmail())) {
             throw new CustomException(ErrorCode.ALREADY_EMAIL);
         }
         ;
-        if (!authRequestDTO.getPassword().equals(authRequestDTO.getPasswordConfirm())) {
+        if (!authSignRequestDTO.getPassword().equals(authSignRequestDTO.getPasswordConfirm())) {
             throw new CustomException(ErrorCode.NOT_MATCH_PASSWORD);
         }
         ;
-        if (!emailRepository.existsByEmail(authRequestDTO.getEmail())
-            && emailRepository.existsByEmailAndVerifiedIsFalse(authRequestDTO.getEmail())) {
+        if (!emailRepository.existsByEmail(authSignRequestDTO.getEmail())
+            && emailRepository.existsByEmailAndVerifiedIsFalse(authSignRequestDTO.getEmail())) {
             throw new CustomException(ErrorCode.NOT_VERIFIED_EMAIL);
         }
         ;
 
         User user = new User();
 
-        user.setUsername(authRequestDTO.getUsername());
-        user.setEmail(authRequestDTO.getEmail());
-        user.setPassword(passwordEncoder.encode(authRequestDTO.getPassword()));
-        user.setCreatedBy(authRequestDTO.getEmail());
+        user.setUsername(authSignRequestDTO.getUsername());
+        user.setEmail(authSignRequestDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(authSignRequestDTO.getPassword()));
+        user.setCreatedBy(authSignRequestDTO.getEmail());
 
         userRepository.save(user);
     }
