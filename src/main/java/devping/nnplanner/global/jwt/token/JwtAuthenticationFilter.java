@@ -1,7 +1,7 @@
 package devping.nnplanner.global.jwt.token;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import devping.nnplanner.domain.auth.dto.request.AuthRequestDTO;
+import devping.nnplanner.domain.auth.dto.request.AuthLoginRequestDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthResponseDTO;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
@@ -32,8 +32,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         log.info("로그인 시도");
         try {
-            AuthRequestDTO requestDTO =
-                new ObjectMapper().readValue(request.getInputStream(), AuthRequestDTO.class);
+            AuthLoginRequestDTO requestDTO =
+                new ObjectMapper().readValue(request.getInputStream(), AuthLoginRequestDTO.class);
 
             return getAuthenticationManager().authenticate(
                 new UsernamePasswordAuthenticationToken(
