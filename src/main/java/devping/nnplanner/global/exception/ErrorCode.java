@@ -21,7 +21,7 @@ public enum ErrorCode {
     UNSUPPORTED_JWT(HttpStatus.BAD_REQUEST, "지원되지 않는 JWT 토큰 입니다."),
     BAD_JWT(HttpStatus.BAD_REQUEST, "잘못된 JWT 토큰 입니다."),
 
-    //USER
+    //AUTH
     ALREADY_EMAIL(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일 입니다."),
     NOT_MATCH_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     NOT_VERIFIED_EMAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 인증 정보가 없습니다.");
