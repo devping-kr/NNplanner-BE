@@ -3,6 +3,7 @@ package devping.nnplanner.domain.auth.controller;
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.EmailCodeRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.EmailRequestDTO;
+import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
 import devping.nnplanner.domain.auth.service.AuthService;
 import devping.nnplanner.domain.auth.service.EmailService;
 import devping.nnplanner.global.response.ApiResponse;
@@ -11,8 +12,10 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,5 +57,14 @@ public class AuthController {
         } else {
             return GlobalResponse.BAD_REQUEST("이메일 인증 실패", null);
         }
+    }
+
+    @GetMapping("/reissue")
+    public ResponseEntity<ApiResponse<AuthTokenResponseDTO>> reissueToken(
+        @RequestHeader("RefreshToken") String refreshToken) {
+
+        AuthTokenResponseDTO authTokenResponseDTO = authService.reissueToken(refreshToken);
+
+        return GlobalResponse.OK("JWT 토큰 재발급 성공", authTokenResponseDTO);
     }
 }
