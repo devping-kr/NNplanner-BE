@@ -59,9 +59,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         UserDetailsImpl userDetails = ((UserDetailsImpl) authResult.getPrincipal());
 
-        String token = jwtUtil.createToken(userDetails.getUser().getEmail());
+        String email = userDetails.getUser().getEmail();
+        Long userId = userDetails.getUser().getUserId();
 
-        AuthResponseDTO responseDTO = new AuthResponseDTO(userDetails.getUser(), token);
+        String accessToken = jwtUtil.createAccessToken(email);
+        String refreshToken = jwtUtil.createRefreshToken(userId, email);
+
+        jwtUtil.saveRefreshToken(userId, refreshToken);
+
+        AuthResponseDTO responseDTO = new AuthResponseDTO(userDetails.getUser(), accessToken,
+            refreshToken);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
