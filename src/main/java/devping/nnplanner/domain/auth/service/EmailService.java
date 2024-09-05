@@ -4,6 +4,7 @@ import devping.nnplanner.domain.auth.dto.request.EmailCodeRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.EmailRequestDTO;
 import devping.nnplanner.domain.auth.entity.Email;
 import devping.nnplanner.domain.auth.repository.EmailRepository;
+import devping.nnplanner.domain.auth.repository.UserRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import jakarta.mail.MessagingException;
@@ -23,17 +24,25 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class EmailService {
 
+    private final UserRepository userRepository;
     private final EmailRepository emailRepository;
     private JavaMailSender mailSender;
 
     @Autowired
-    public EmailService(EmailRepository emailRepository, JavaMailSender mailSender) {
+    public EmailService(UserRepository userRepository, EmailRepository emailRepository,
+                        JavaMailSender mailSender) {
+        this.userRepository = userRepository;
         this.emailRepository = emailRepository;
         this.mailSender = mailSender;
     }
 
     @Transactional
     public void sendEmail(EmailRequestDTO emailRequestDTO) throws MessagingException {
+
+        if (userRepository.existsByEmail(emailRequestDTO.getEmail())) {
+            throw new CustomException(ErrorCode.ALREADY_EMAIL);
+        }
+        ;
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

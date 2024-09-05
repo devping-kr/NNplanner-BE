@@ -18,6 +18,11 @@ spring:
     mongodb:
       uri: ${LOCAL_MONGODB_URL}
 
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -36,5 +41,4 @@ spring:
 
 jwt:
   secret:
-    expiration-time: 3600000
     key: ${JWT_SECRET_KEY}

@@ -12,12 +12,15 @@ public class AuthResponseDTO {
 
     private String email;
 
-    private String authorization;
+    private String accessToken;
 
-    public AuthResponseDTO(User user, String authorization) {
+    private String refreshToken;
+
+    public AuthResponseDTO(User user, String accessToken, String refreshToken) {
         this.userId = user.getUserId();
         this.username = user.getUsername();
         this.email = user.getEmail();
-        this.authorization = authorization;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 }

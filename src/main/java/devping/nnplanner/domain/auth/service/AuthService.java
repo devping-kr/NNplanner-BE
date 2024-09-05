@@ -1,11 +1,13 @@
 package devping.nnplanner.domain.auth.service;
 
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
+import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
 import devping.nnplanner.domain.auth.entity.User;
 import devping.nnplanner.domain.auth.repository.EmailRepository;
 import devping.nnplanner.domain.auth.repository.UserRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
+import devping.nnplanner.global.jwt.token.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +22,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final EmailRepository emailRepository;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public void signUp(AuthSignRequestDTO authSignRequestDTO) {
@@ -46,6 +49,15 @@ public class AuthService {
         user.setCreatedBy(authSignRequestDTO.getEmail());
 
         userRepository.save(user);
+    }
+
+    public AuthTokenResponseDTO reissueToken(String refreshToken) {
+
+        String reissueRefreshToken = jwtUtil.reissueRefreshToken(refreshToken);
+        String reissueAccessToken = jwtUtil.reissueAccessToken(refreshToken);
+
+        return new AuthTokenResponseDTO(reissueAccessToken, reissueRefreshToken);
+
     }
 
 }
