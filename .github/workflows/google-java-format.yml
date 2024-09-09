@@ -1,0 +1,14 @@
+name: google-java-format
+on: [ push, pull_request ]
+permissions:
+  contents: read  # 검사만 수행하므로 read 권한만 필요
+
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2 # 코드를 체크아웃
+      - name: Run Google Java Format Check
+        uses: axel-op/googlejavaformat-action@v3
+        with:
+          args: "--dry-run" # 포맷팅이 필요하면 오류를 발생시키고 수정은 하지 않음
