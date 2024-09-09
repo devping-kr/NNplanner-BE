@@ -52,7 +52,10 @@ public class WebSecurityConfig {
             .sessionManagement((session) -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
+                .requestMatchers( // 인증o
+                    "api/auths/logout")
+                .authenticated()
+                .requestMatchers( // 인증x
                     "api/auths/**"
                 ).permitAll()
                 .anyRequest().authenticated())
