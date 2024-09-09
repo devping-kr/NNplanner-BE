@@ -67,7 +67,7 @@ public class AuthService {
         Long userId = userDetails.getUser().getUserId();
         String email = userDetails.getUser().getEmail();
 
-        jwtUtil.logoutRefreshToken(userId, email);
+        jwtUtil.deleteRefreshToken(userId, email);
         jwtUtil.logoutAccessToken(httpRequest);
     }
 
