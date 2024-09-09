@@ -8,6 +8,8 @@ import devping.nnplanner.domain.auth.repository.UserRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.token.JwtUtil;
+import devping.nnplanner.global.jwt.user.UserDetailsImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,6 +60,15 @@ public class AuthService {
 
         return new AuthTokenResponseDTO(reissueAccessToken, reissueRefreshToken);
 
+    }
+
+    public void logout(HttpServletRequest httpRequest, UserDetailsImpl userDetails) {
+
+        Long userId = userDetails.getUser().getUserId();
+        String email = userDetails.getUser().getEmail();
+
+        jwtUtil.logoutRefreshToken(userId, email);
+        jwtUtil.logoutAccessToken(httpRequest);
     }
 
 }
