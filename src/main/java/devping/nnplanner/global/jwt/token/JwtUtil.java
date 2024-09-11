@@ -10,6 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import org.springframework.util.StringUtils;
 public class JwtUtil {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlackListRepository blackListRepository;
 
     @Value("${jwt.secret.key}")
     private String secret;
@@ -77,10 +79,7 @@ public class JwtUtil {
 
         validateToken(refreshToken);
 
-        Claims userInfo = Jwts.parserBuilder().setSigningKey(getSignKey(secret))
-                              .build()
-                              .parseClaimsJws(refreshToken)
-                              .getBody();
+        Claims userInfo = getUserInfoFromToken(refreshToken);
 
         String email = userInfo.getSubject();
         Long userId = userInfo.get("userId", Long.class);
@@ -106,14 +105,20 @@ public class JwtUtil {
 
         validateToken(refreshToken);
 
-        Claims userInfo = Jwts.parserBuilder().setSigningKey(getSignKey(secret))
-                              .build()
-                              .parseClaimsJws(refreshToken)
-                              .getBody();
+        Claims userInfo = getUserInfoFromToken(refreshToken);
 
         String email = userInfo.getSubject();
 
         return createAccessToken(email);
+    }
+
+    public void logoutAccessToken(HttpServletRequest httpRequest) {
+
+        BlackList blackList = new BlackList(
+            substringToken(
+                httpRequest.getHeader("Authorization")));
+
+        blackListRepository.save(blackList);
     }
 
     public String substringToken(String tokenValue) {
@@ -140,6 +145,9 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token);
 
+            if (blackListRepository.existsById(token)) {
+                throw new CustomException(ErrorCode.LOGOUT_JWT);
+            }
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             log.error("유효하지 않는 JWT 서명 입니다.");
             throw new CustomException(ErrorCode.INVALID_JWT);
@@ -153,5 +161,6 @@ public class JwtUtil {
             log.error("잘못된 JWT 토큰 입니다.");
             throw new CustomException(ErrorCode.BAD_JWT);
         }
+
     }
 }
