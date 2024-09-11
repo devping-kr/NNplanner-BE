@@ -57,7 +57,8 @@ public class WebSecurityConfig {
                 .authenticated()
                 .requestMatchers( // 인증x
                     "api/auths/**",
-                    "/actuator/health"
+                    "/actuator/health",
+                    "/"
                 ).permitAll()
                 .anyRequest().authenticated())
             .formLogin(AbstractAuthenticationFilterConfigurer::disable)
