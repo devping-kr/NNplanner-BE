@@ -6,12 +6,15 @@ import devping.nnplanner.domain.auth.dto.request.EmailRequestDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
 import devping.nnplanner.domain.auth.service.AuthService;
 import devping.nnplanner.domain.auth.service.EmailService;
+import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,5 +69,15 @@ public class AuthController {
         AuthTokenResponseDTO authTokenResponseDTO = authService.reissueToken(refreshToken);
 
         return GlobalResponse.OK("JWT 토큰 재발급 성공", authTokenResponseDTO);
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+        HttpServletRequest httpRequest,
+        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        authService.logout(httpRequest, userDetails);
+
+        return GlobalResponse.OK("유저 로그아웃 성공", null);
     }
 }

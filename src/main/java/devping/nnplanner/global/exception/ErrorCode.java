@@ -20,6 +20,7 @@ public enum ErrorCode {
     EXPIRED_JWT(HttpStatus.BAD_REQUEST, "만료된 JWT token 입니다."),
     UNSUPPORTED_JWT(HttpStatus.BAD_REQUEST, "지원되지 않는 JWT 토큰 입니다."),
     BAD_JWT(HttpStatus.BAD_REQUEST, "잘못된 JWT 토큰 입니다."),
+    LOGOUT_JWT(HttpStatus.BAD_REQUEST, "로그아웃된 JWT 토큰 입니다."),
 
     //AUTH
     ALREADY_EMAIL(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일 입니다."),
