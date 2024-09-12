@@ -42,3 +42,17 @@ spring:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info  # 노출할 엔드포인트 목록
+  endpoint:
+    health:
+      show-details: always  # 헬스체크의 상세 정보를 항상 표시
+  health:
+    redis:
+      enabled: true  # Redis 헬스체크 활성화
+    db:
+      enabled: true  # 데이터베이스 헬스체크 활성화
