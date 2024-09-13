@@ -1,4 +1,4 @@
-package devping.nnplanner.domain.openapi.FoodBatch;
+package devping.nnplanner.domain.openapi.batch.food;
 
 import devping.nnplanner.domain.openapi.entity.Food;
 import devping.nnplanner.domain.openapi.repository.FoodRepository;

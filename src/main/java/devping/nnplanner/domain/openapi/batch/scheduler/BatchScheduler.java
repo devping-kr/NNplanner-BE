@@ -1,4 +1,4 @@
-package devping.nnplanner.domain.openapi.FoodBatch;
+package devping.nnplanner.domain.openapi.batch.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

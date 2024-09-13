@@ -1,4 +1,4 @@
-package devping.nnplanner.domain.openapi.FoodBatch;
+package devping.nnplanner.domain.openapi.batch.food;
 
 import devping.nnplanner.domain.openapi.dto.response.FoodApiResponseDTO;
 import devping.nnplanner.domain.openapi.dto.response.FoodApiResponseDTO.FoodItem;
