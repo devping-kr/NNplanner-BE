@@ -5,6 +5,12 @@ spring:
     username: ${LOCAL_DB_USER}
     password: ${LOCAL_DB_PASSWORD}
 
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
   jpa:
     hibernate:
       ddl-auto: update
