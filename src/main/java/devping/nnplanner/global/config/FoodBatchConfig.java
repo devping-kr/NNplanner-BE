@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class BatchConfig {
+public class FoodBatchConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -24,11 +24,11 @@ public class BatchConfig {
     private final ItemProcessor<List<FoodItem>, List<Food>> foodItemProcessor;
     private final ItemWriter<List<Food>> foodItemWriter;
 
-    public BatchConfig(JobRepository jobRepository,
-                       PlatformTransactionManager transactionManager,
-                       ItemReader<List<FoodItem>> foodItemReader,
-                       ItemProcessor<List<FoodItem>, List<Food>> foodItemProcessor,
-                       ItemWriter<List<Food>> foodItemWriter) {
+    public FoodBatchConfig(JobRepository jobRepository,
+                           PlatformTransactionManager transactionManager,
+                           ItemReader<List<FoodItem>> foodItemReader,
+                           ItemProcessor<List<FoodItem>, List<Food>> foodItemProcessor,
+                           ItemWriter<List<Food>> foodItemWriter) {
         this.jobRepository = jobRepository;
         this.transactionManager = transactionManager;
         this.foodItemReader = foodItemReader;
