@@ -13,6 +13,8 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -50,7 +52,21 @@ public class FoodBatchConfig {
             .reader(foodItemReader)
             .processor(foodItemProcessor)
             .writer(foodItemWriter)
+            .faultTolerant()
+            .retryLimit(3)
+            .retry(Exception.class)
             .allowStartIfComplete(true)
+            .taskExecutor(taskExecutor())
             .build();
+    }
+
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(100);
+        executor.initialize();
+        return executor;
     }
 }
