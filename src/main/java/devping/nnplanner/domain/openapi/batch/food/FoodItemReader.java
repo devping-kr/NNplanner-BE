@@ -19,7 +19,7 @@ public class FoodItemReader implements ItemReader<List<FoodItem>> {
     private final Integer numOfRows = 100;
     private int totalPages = Integer.MAX_VALUE;
 
-    @Value("${FOOD_API_KEY}")
+    @Value("${api.food.key}")
     private String apiKey;
 
     @Autowired
