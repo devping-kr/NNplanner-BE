@@ -43,6 +43,12 @@ jwt:
   secret:
     key: ${JWT_SECRET_KEY}
 
+api:
+  school:
+    key: ${SCHOOL_API_KEY}
+  food:
+    key: ${FOOD_API_KEY}
+
 management:
   endpoints:
     web:
