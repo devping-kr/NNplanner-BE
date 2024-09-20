@@ -18,7 +18,8 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000"
+            "http://localhost:3000",
+            "http://default-nnplanner-cd7c0-26459303-247c8a4f5ac3.kr.lb.naverncp.com"
         ));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
