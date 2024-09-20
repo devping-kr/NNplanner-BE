@@ -57,6 +57,7 @@ public class WebSecurityConfig {
                 .authenticated()
                 .requestMatchers( // 인증x
                     "api/auths/**",
+                    "api/openapis/**",
                     "/actuator/health",
                     "/"
                 ).permitAll()
