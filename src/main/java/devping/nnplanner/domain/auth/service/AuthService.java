@@ -45,9 +45,10 @@ public class AuthService {
 
         User user = new User();
 
-        user.setUsername(authSignRequestDTO.getUsername());
-        user.setEmail(authSignRequestDTO.getEmail());
-        user.setPassword(passwordEncoder.encode(authSignRequestDTO.getPassword()));
+        user.create(
+            authSignRequestDTO.getUsername(),
+            authSignRequestDTO.getEmail(),
+            passwordEncoder.encode(authSignRequestDTO.getPassword()));
         user.setCreatedBy(authSignRequestDTO.getEmail());
 
         userRepository.save(user);

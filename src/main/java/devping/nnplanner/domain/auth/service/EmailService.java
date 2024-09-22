@@ -61,17 +61,19 @@ public class EmailService {
                                          .orElseThrow(
                                              () -> new CustomException(ErrorCode.NOT_FOUND));
 
-            email.setVerificationCode(verificationCode);
-            email.setExpirationTime(Instant.now().toEpochMilli() + 30000);
+            email.update(verificationCode, Instant.now().toEpochMilli() + 30000);
 
             emailRepository.save(email);
         } else {
 
             Email email = new Email();
-            email.setEmail(emailRequestDTO.getEmail());
-            email.setVerificationCode(verificationCode);
-            email.setExpirationTime(Instant.now().toEpochMilli() + 30000);
-            email.setVerified(false);
+
+            email.create(
+                emailRequestDTO.getEmail(),
+                verificationCode,
+                Instant.now().toEpochMilli() + 30000,
+                false
+            );
 
             emailRepository.save(email);
         }
@@ -86,7 +88,7 @@ public class EmailService {
         if (email.getVerificationCode().equals(emailCodeRequestDTO.getVerifyCode()) &&
             email.getExpirationTime() > Instant.now().toEpochMilli()) {
 
-            email.setVerified(true);
+            email.verify(true);
             emailRepository.save(email);
 
             return true;
