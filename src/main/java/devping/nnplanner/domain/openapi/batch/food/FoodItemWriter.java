@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class FoodItemWriter implements ItemWriter<List<Food>> {
     private final FoodRepository foodRepository;
 
     @Override
+    @Transactional
     public void write(Chunk<? extends List<Food>> items) {
 
         List<Food> foodsToSave = new ArrayList<>();
