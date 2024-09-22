@@ -62,9 +62,3 @@ management:
       enabled: true  # Redis 헬스체크 활성화
     db:
       enabled: true  # 데이터베이스 헬스체크 활성화
-
-api:
-  school:
-    key: ${SCHOOL_API_KEY}
-  food:
-    key: ${FOOD_API_KEY}
