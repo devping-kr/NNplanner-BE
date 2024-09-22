@@ -72,8 +72,8 @@ public class EmailService {
                 emailRequestDTO.getEmail(),
                 verificationCode,
                 Instant.now().toEpochMilli() + 30000,
-                false
-            );
+                false,
+                Instant.now());
 
             emailRepository.save(email);
         }
