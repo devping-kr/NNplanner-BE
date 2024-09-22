@@ -89,11 +89,14 @@ public class SchoolInfoService {
     private SchoolInfo convertToEntity(SchoolRow schoolRow) {
 
         SchoolInfo schoolInfo = new SchoolInfo();
-        schoolInfo.setSchoolAreaCode(schoolRow.getSchoolAreaCode());
-        schoolInfo.setSchoolAreaName(schoolRow.getSchoolAreaName());
-        schoolInfo.setSchoolCode(schoolRow.getSchoolCode());
-        schoolInfo.setSchoolName(schoolRow.getSchoolName());
-        schoolInfo.setSchoolKindName(schoolRow.getSchoolKindName());
+
+        schoolInfo.create(
+            schoolRow.getSchoolAreaCode(),
+            schoolRow.getSchoolAreaName(),
+            schoolRow.getSchoolCode(),
+            schoolRow.getSchoolName(),
+            schoolRow.getSchoolKindName());
+
         return schoolInfo;
     }
 }

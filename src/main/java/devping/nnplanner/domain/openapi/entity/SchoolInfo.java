@@ -4,12 +4,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 @Table(name = "school_infos")
+@Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class SchoolInfo {
 
@@ -17,18 +22,25 @@ public class SchoolInfo {
     @UuidGenerator
     private UUID schoolInfoId;
 
-    @Setter
     private String schoolAreaCode;
 
-    @Setter
     private String schoolAreaName;
 
-    @Setter
     private String schoolCode;
 
-    @Setter
     private String schoolName;
 
-    @Setter
     private String schoolKindName;
+
+    public SchoolInfo create(String schoolAreaCode, String schoolAreaName, String schoolCode,
+                             String schoolName, String schoolKindName) {
+
+        return SchoolInfo.builder()
+                         .schoolAreaCode(schoolAreaCode)
+                         .schoolAreaName(schoolAreaName)
+                         .schoolCode(schoolCode)
+                         .schoolName(schoolName)
+                         .schoolKindName(schoolKindName)
+                         .build();
+    }
 }
