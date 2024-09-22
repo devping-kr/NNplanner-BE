@@ -29,7 +29,7 @@ public class WebClientConfig {
     }
 
     @Bean
-    public WebClient menuWebClient() {
+    public WebClient schoolWebClient() {
 
         ExchangeStrategies strategies =
             ExchangeStrategies.builder()
@@ -39,7 +39,7 @@ public class WebClientConfig {
 
         return WebClient.builder()
                         .baseUrl(
-                            "https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo01/getFoodNtrCpntDbInq01")
+                            "https://open.neis.go.kr/hub")
                         .exchangeStrategies(strategies)
                         .build();
     }
