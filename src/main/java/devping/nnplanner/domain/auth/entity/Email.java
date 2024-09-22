@@ -1,6 +1,7 @@
 package devping.nnplanner.domain.auth.entity;
 
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,14 +18,19 @@ public class Email {
     @Id
     private String id;
 
+    @NotNull
     private String email;
 
+    @NotNull
     private String verificationCode;
 
+    @NotNull
     private long expirationTime;
 
+    @NotNull
     private boolean isVerified;
 
+    @NotNull
     @Indexed(name = "createdAtIndex", expireAfterSeconds = 1800) // 30분
     private Instant createdAt;
 
