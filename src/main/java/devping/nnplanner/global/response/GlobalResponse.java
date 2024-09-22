@@ -24,4 +24,10 @@ public class GlobalResponse {
             .status(HttpStatus.BAD_REQUEST)
             .body(ApiResponse.of(message, data));
     }
+
+    public static <T> ResponseEntity<ApiResponse<T>> INTERNAL_SERVER_ERROR(String message, T data) {
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ApiResponse.of(message, data));
+    }
 }
