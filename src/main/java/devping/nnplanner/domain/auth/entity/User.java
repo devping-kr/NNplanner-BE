@@ -1,6 +1,7 @@
 package devping.nnplanner.domain.auth.entity;
 
 import devping.nnplanner.global.entity.BaseTimeEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,12 +24,16 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @Column(nullable = false)
     private String username;
 
+    @Column(nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private LoginType loginType;
 
@@ -41,7 +46,7 @@ public class User extends BaseTimeEntity {
                        String email,
                        String password,
                        LoginType loginType) {
-        
+
         this.username = username;
         this.email = email;
         this.password = password;
