@@ -5,6 +5,12 @@ spring:
     username: ${LOCAL_DB_USER}
     password: ${LOCAL_DB_PASSWORD}
 
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -42,3 +48,9 @@ spring:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
+
+api:
+  school:
+    key: ${SCHOOL_API_KEY}
+  food:
+    key: ${FOOD_API_KEY}
