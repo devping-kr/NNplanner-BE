@@ -29,6 +29,18 @@ public class FoodItemReader implements ItemReader<List<FoodItem>> {
 
     @Override
     public List<FoodItem> read() {
+
+        if (pageNo <= 4) {
+            synchronized (this) {
+                return processPage();
+            }
+        }
+
+        return processPage();
+    }
+
+    private List<FoodItem> processPage() {
+
         if (pageNo > totalPages) {
             return null;
         }
@@ -48,6 +60,8 @@ public class FoodItemReader implements ItemReader<List<FoodItem>> {
         if (response == null) {
             return null;
         }
+
+        log.info("현재 페이지 : {}", pageNo);
 
         if (pageNo == 1) {
             String totalCountStr = response.getBody().getTotalCount();
