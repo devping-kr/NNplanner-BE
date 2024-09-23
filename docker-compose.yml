@@ -25,6 +25,7 @@ services:
     depends_on:
       - db
       - redis
+      - mongodb-service
 
   db:
     image: postgres:latest
@@ -44,6 +45,15 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
+
+  mongodb-service:
+    image: mongo:latest
+    container_name: mongodb-service
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - "27017:27017"
 
 networks:
   default:

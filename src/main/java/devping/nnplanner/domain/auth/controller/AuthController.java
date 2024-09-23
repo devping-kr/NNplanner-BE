@@ -32,7 +32,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signUp(
-        @RequestBody AuthSignRequestDTO authSignRequestDTO) {
+        @RequestBody @Valid AuthSignRequestDTO authSignRequestDTO) {
 
         authService.signUp(authSignRequestDTO);
 
@@ -51,7 +51,7 @@ public class AuthController {
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<Void>> verifyEmail(
-        @RequestBody EmailCodeRequestDTO emailCodeRequestDTO) {
+        @RequestBody @Valid EmailCodeRequestDTO emailCodeRequestDTO) {
 
         boolean isVerified = emailService.verifyEmail(emailCodeRequestDTO);
 

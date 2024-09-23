@@ -3,6 +3,7 @@ package devping.nnplanner.domain.auth.service;
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
 import devping.nnplanner.domain.auth.entity.User;
+import devping.nnplanner.domain.auth.entity.User.LoginType;
 import devping.nnplanner.domain.auth.repository.EmailRepository;
 import devping.nnplanner.domain.auth.repository.UserRepository;
 import devping.nnplanner.global.exception.CustomException;
@@ -43,15 +44,20 @@ public class AuthService {
         }
         ;
 
-        User user = new User();
+        if (authSignRequestDTO.getLoginType().equals("LOCAL")) {
 
-        user.create(
-            authSignRequestDTO.getUsername(),
-            authSignRequestDTO.getEmail(),
-            passwordEncoder.encode(authSignRequestDTO.getPassword()));
-        user.setCreatedBy(authSignRequestDTO.getEmail());
+            User user = new User();
 
-        userRepository.save(user);
+            user.create(
+                authSignRequestDTO.getUsername(),
+                authSignRequestDTO.getEmail(),
+                passwordEncoder.encode(authSignRequestDTO.getPassword()),
+                LoginType.LOCAL);
+
+            user.setCreatedBy(authSignRequestDTO.getEmail());
+
+            userRepository.save(user);
+        }
     }
 
     public AuthTokenResponseDTO reissueToken(String refreshToken) {

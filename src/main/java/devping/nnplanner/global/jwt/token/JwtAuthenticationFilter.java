@@ -3,6 +3,7 @@ package devping.nnplanner.global.jwt.token;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import devping.nnplanner.domain.auth.dto.request.AuthLoginRequestDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthResponseDTO;
+import devping.nnplanner.domain.auth.entity.User.LoginType;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import jakarta.servlet.FilterChain;
@@ -35,13 +36,21 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             AuthLoginRequestDTO requestDTO =
                 new ObjectMapper().readValue(request.getInputStream(), AuthLoginRequestDTO.class);
 
-            return getAuthenticationManager().authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    requestDTO.getEmail(),
-                    requestDTO.getPassword(),
-                    null
-                )
-            );
+            if (requestDTO.getLoginType().equals("LOCAL")) {
+
+                return getAuthenticationManager().authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                        requestDTO.getEmail(),
+                        requestDTO.getPassword(),
+                        null
+                    )
+                );
+            } else {
+                log.warn("잘못된 로그인 타입: {}", requestDTO.getLoginType());
+                throw new AuthenticationException(
+                    "지원하지 않는 로그인 타입입니다: " + requestDTO.getLoginType()) {
+                };
+            }
         } catch (IOException e) {
             log.error("요청 데이터 읽기 오류: {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -55,9 +64,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         FilterChain chain,
         Authentication authResult) throws IOException {
 
-        log.info("로그인 성공 및 JWT 생성");
-
         UserDetailsImpl userDetails = ((UserDetailsImpl) authResult.getPrincipal());
+
+        if (!(userDetails.getUser().getLoginType() == LoginType.LOCAL)) {
+            throw new AuthenticationException("로그인 타입을 확인해주세요.") {
+            };
+        }
+
+        log.info("로그인 성공 및 JWT 생성");
 
         String email = userDetails.getUser().getEmail();
         Long userId = userDetails.getUser().getUserId();
