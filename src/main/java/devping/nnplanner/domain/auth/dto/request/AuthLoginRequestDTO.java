@@ -15,4 +15,7 @@ public class AuthLoginRequestDTO {
 
     @NotBlank
     private String password;
+
+    @NotBlank
+    private String loginType;
 }
