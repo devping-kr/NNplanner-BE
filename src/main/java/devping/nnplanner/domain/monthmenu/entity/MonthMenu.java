@@ -35,16 +35,11 @@ public class MonthMenu extends BaseTimeEntity {
     @Column(nullable = false)
     private String monthMenuName;
 
-    @Column(nullable = false)
-    private String month;
-
     public void create(User user,
                        MenuCategory menuCategory,
-                       String monthMenuName,
-                       String month) {
+                       String monthMenuName) {
         this.user = user;
         this.menuCategory = menuCategory;
         this.monthMenuName = monthMenuName;
-        this.month = month;
     }
 }
