@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public class AuthTokenResponseDTO {
 
-    private String accessToken;
+    private final String accessToken;
 
-    private String refreshToken;
+    private final String refreshToken;
 
     public AuthTokenResponseDTO(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
