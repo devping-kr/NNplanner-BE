@@ -14,7 +14,7 @@ public class ImportHospitalMenu {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long hospitalMenuId;
+    private Long importHospitalMenuId;
 
     private String menuKind;
 
