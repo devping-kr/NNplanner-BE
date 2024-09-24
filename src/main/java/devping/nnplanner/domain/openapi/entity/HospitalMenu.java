@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.openapi.entity;
 
+import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -18,11 +19,11 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class HospitalMenu {
+public class HospitalMenu extends BaseTimeEntity {
 
     @Id
     @UuidGenerator
-    private UUID hospitalDMId;
+    private UUID hospitalMenuId;
 
     private String hospitalMenuKind;
 
