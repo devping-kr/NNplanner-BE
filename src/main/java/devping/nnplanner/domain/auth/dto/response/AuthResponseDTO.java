@@ -6,15 +6,15 @@ import lombok.Getter;
 @Getter
 public class AuthResponseDTO {
 
-    private Long userId;
+    private final Long userId;
 
-    private String username;
+    private final String username;
 
-    private String email;
+    private final String email;
 
-    private String accessToken;
+    private final String accessToken;
 
-    private String refreshToken;
+    private final String refreshToken;
 
     public AuthResponseDTO(User user, String accessToken, String refreshToken) {
         this.userId = user.getUserId();

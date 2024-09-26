@@ -20,8 +20,10 @@ public class HospitalMenuRepositoryCustomImpl implements HospitalMenuRepositoryC
 
         return queryFactory
             .selectFrom(hospitalMenu)
-            .where(hospitalMenu.hospitalMenuKind.eq(hospitalMenuKind))
-            .orderBy(Expressions.numberTemplate(Double.class, "function('random')").asc())
+            .where(
+                hospitalMenu.hospitalMenuKind.eq(hospitalMenuKind)
+                                             .and(hospitalMenu.createdBy.isNull())
+            ).orderBy(Expressions.numberTemplate(Double.class, "function('random')").asc())
             .limit(dayCount)
             .fetch();
     }
