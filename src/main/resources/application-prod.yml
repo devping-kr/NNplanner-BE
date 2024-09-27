@@ -9,7 +9,7 @@ spring:
     jdbc:
       initialize-schema: always
     job:
-      names: importFoodDataJob
+      enabled: false
 
   jpa:
     hibernate:
