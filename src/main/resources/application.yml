@@ -1,3 +1,10 @@
 spring:
   profiles:
     active: prod
+  batch:
+    job:
+      enabled: false
+  main:
+    banner-mode: "off"
+  application:
+    debug: true

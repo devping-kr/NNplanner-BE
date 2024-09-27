@@ -4,7 +4,11 @@ import devping.nnplanner.domain.menucategory.entity.MenuCategory;
 import devping.nnplanner.domain.menucategory.repository.MenuCategoryRepository;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.MonthFoodListResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenuHospital;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuHospitalRepository;
@@ -20,9 +24,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MonthMenuService {
@@ -113,6 +122,64 @@ public class MonthMenuService {
             });
         }
     }
+
+    public MonthMenuPageResponseDTO getAllMonthMenu(UserDetailsImpl userDetails,
+                                                    Pageable pageable) {
+
+        Page<MonthMenu> monthMenus =
+            monthMenuRepository.findAllByUser_UserId(userDetails.getUser().getUserId(), pageable);
+
+        System.out.println("MonthMenus: " + monthMenus.getContent());
+
+        List<MonthMenuResponseDTO> menuResponseDTOList =
+            monthMenus.stream().map(monthMenu ->
+                          new MonthMenuResponseDTO(monthMenu, Collections.emptyList()))
+                      .toList();
+
+        System.out.println("MenuResponseDTOList: " + menuResponseDTOList);
+
+        return new MonthMenuPageResponseDTO(
+            monthMenus.getNumber(),
+            monthMenus.getTotalPages(),
+            monthMenus.getTotalElements(),
+            monthMenus.getSize(),
+            menuResponseDTOList);
+
+    }
+
+    public MonthMenuResponseDTO getMonthMenu(UUID monthMenuId) {
+
+        MonthMenu monthMenu =
+            monthMenuRepository.findById(monthMenuId)
+                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        List<MonthMenuHospital> monthMenuHospitalList =
+            monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+
+        List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+            monthMenuHospitalList.stream().map(menu -> {
+
+                HospitalMenu hospitalMenu = menu.getHospitalMenu();
+
+                List<FoodResponseDTO> foodList = Stream.of(
+                                                           hospitalMenu.getFood1(),
+                                                           hospitalMenu.getFood2(),
+                                                           hospitalMenu.getFood3(),
+                                                           hospitalMenu.getFood4(),
+                                                           hospitalMenu.getFood5(),
+                                                           hospitalMenu.getFood6(),
+                                                           hospitalMenu.getFood7()
+                                                       )
+                                                       .map(FoodResponseDTO::new)
+                                                       .toList();
+
+                return new MonthFoodListResponseDTO(menu, foodList);
+            }).toList();
+
+        return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+    }
+
+
 }
 
 
