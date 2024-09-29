@@ -42,4 +42,10 @@ public class MonthMenu extends BaseTimeEntity {
         this.menuCategory = menuCategory;
         this.monthMenuName = monthMenuName;
     }
+
+    public void update(MenuCategory menuCategory,
+                       String monthMenuName) {
+        this.menuCategory = menuCategory;
+        this.monthMenuName = monthMenuName;
+    }
 }
