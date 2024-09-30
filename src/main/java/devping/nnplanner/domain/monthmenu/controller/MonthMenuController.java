@@ -22,6 +22,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -76,5 +77,15 @@ public class MonthMenuController {
         return GlobalResponse.OK("작성한 식단 상세 조회 성공", monthMenuResponseDTO);
     }
 
+    @PutMapping("/{monthMenuId}")
+    public ResponseEntity<ApiResponse<MonthMenuResponseDTO>> updateMonthMenu(
+        @PathVariable("monthMenuId") UUID monthMenuId,
+        @RequestBody MonthMenuSaveRequestDTO monthMenuSaveRequestDTO) {
+
+        MonthMenuResponseDTO monthMenuResponseDTO =
+            monthMenuService.updateMonthMenu(monthMenuId, monthMenuSaveRequestDTO);
+
+        return GlobalResponse.OK("월별 식단 수정 성공", monthMenuResponseDTO);
+    }
 
 }

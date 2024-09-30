@@ -4,6 +4,7 @@ import devping.nnplanner.domain.menucategory.entity.MenuCategory;
 import devping.nnplanner.domain.menucategory.repository.MenuCategoryRepository;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
+import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO.MonthMenusSave;
 import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthFoodListResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
@@ -86,41 +87,14 @@ public class MonthMenuService {
 
                 } else {
 
-                    Food food1 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood1()))
-                                               .orElse(null);
-                    Food food2 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood2()))
-                                               .orElse(null);
-                    Food food3 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood3()))
-                                               .orElse(null);
-                    Food food4 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood4()))
-                                               .orElse(null);
-                    Food food5 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood5()))
-                                               .orElse(null);
-                    Food food6 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood6()))
-                                               .orElse(null);
-                    Food food7 = foodRepository.findById(UUID.fromString(menuSaveDTO.getFood7()))
-                                               .orElse(null);
-
-                    HospitalMenu hospitalMenu = HospitalMenu.builder()
-                                                            .hospitalMenuKind(
-                                                                requestDTO.getMinorCategory())
-                                                            .food1(food1)
-                                                            .food2(food2)
-                                                            .food3(food3)
-                                                            .food4(food4)
-                                                            .food5(food5)
-                                                            .food6(food6)
-                                                            .food7(food7)
-                                                            .build();
-
-                    hospitalMenuRepository.save(hospitalMenu);
+                    HospitalMenu hospitalMenu = createHospitalMenu(requestDTO, menuSaveDTO);
 
                     MonthMenuHospital monthMenuHospital = new MonthMenuHospital();
                     monthMenuHospital.create(menuSaveDTO.getMenuDate(), monthMenu, hospitalMenu);
                     monthMenuHospitalRepository.save(monthMenuHospital);
                 }
             });
-        }
+        }//TODO: majorCategory 별로 나눠서 저장해야함
     }
 
     public MonthMenuPageResponseDTO getAllMonthMenu(UserDetailsImpl userDetails,
@@ -129,14 +103,11 @@ public class MonthMenuService {
         Page<MonthMenu> monthMenus =
             monthMenuRepository.findAllByUser_UserId(userDetails.getUser().getUserId(), pageable);
 
-        System.out.println("MonthMenus: " + monthMenus.getContent());
-
         List<MonthMenuResponseDTO> menuResponseDTOList =
-            monthMenus.stream().map(monthMenu ->
-                          new MonthMenuResponseDTO(monthMenu, Collections.emptyList()))
+            monthMenus.stream()
+                      .map(
+                          monthMenu -> new MonthMenuResponseDTO(monthMenu, Collections.emptyList()))
                       .toList();
-
-        System.out.println("MenuResponseDTOList: " + menuResponseDTOList);
 
         return new MonthMenuPageResponseDTO(
             monthMenus.getNumber(),
@@ -144,7 +115,6 @@ public class MonthMenuService {
             monthMenus.getTotalElements(),
             monthMenus.getSize(),
             menuResponseDTOList);
-
     }
 
     public MonthMenuResponseDTO getMonthMenu(UUID monthMenuId) {
@@ -153,33 +123,130 @@ public class MonthMenuService {
             monthMenuRepository.findById(monthMenuId)
                                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-        List<MonthMenuHospital> monthMenuHospitalList =
-            monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
 
-        List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-            monthMenuHospitalList.stream().map(menu -> {
+            List<MonthMenuHospital> monthMenuHospitalList =
+                monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
 
-                HospitalMenu hospitalMenu = menu.getHospitalMenu();
+            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+                createMonthFoodListResponseDTOS(monthMenuHospitalList);
 
-                List<FoodResponseDTO> foodList = Stream.of(
-                                                           hospitalMenu.getFood1(),
-                                                           hospitalMenu.getFood2(),
-                                                           hospitalMenu.getFood3(),
-                                                           hospitalMenu.getFood4(),
-                                                           hospitalMenu.getFood5(),
-                                                           hospitalMenu.getFood6(),
-                                                           hospitalMenu.getFood7()
-                                                       )
-                                                       .map(FoodResponseDTO::new)
-                                                       .toList();
-
-                return new MonthFoodListResponseDTO(menu, foodList);
-            }).toList();
-
-        return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+        } else {
+            //TODO: majorCategory 별로 나눠서 조회해야함
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
     }
 
+    public MonthMenuResponseDTO updateMonthMenu(UUID monthMenuId,
+                                                MonthMenuSaveRequestDTO requestDTO) {
 
+        MonthMenu monthMenu =
+            monthMenuRepository.findById(monthMenuId)
+                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        MenuCategory menuCategory =
+            menuCategoryRepository.findByMajorCategoryAndMinorCategory(
+                                      requestDTO.getMajorCategory(), requestDTO.getMinorCategory())
+                                  .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        monthMenu.update(menuCategory, monthMenu.getMonthMenuName());
+
+        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
+
+            requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+
+                if (menuSaveDTO.getHospitalMenuId() == null) {
+
+                    MonthMenuHospital monthMenuHospital =
+                        monthMenuHospitalRepository.findByMenuDate(menuSaveDTO.getMenuDate())
+                                                   .orElseThrow(() ->
+                                                       new CustomException(ErrorCode.NOT_FOUND));
+
+                    monthMenuHospitalRepository.delete(monthMenuHospital);
+
+                    if (!monthMenuHospital.getHospitalMenu().getCreatedBy().isEmpty()) {
+                        hospitalMenuRepository.delete(monthMenuHospital.getHospitalMenu());
+                    }
+
+                    HospitalMenu hospitalMenu = createHospitalMenu(requestDTO, menuSaveDTO);
+
+                    MonthMenuHospital saveMonthMenuHospital = new MonthMenuHospital();
+                    saveMonthMenuHospital.create(
+                        menuSaveDTO.getMenuDate(), monthMenu, hospitalMenu);
+                    monthMenuHospitalRepository.save(saveMonthMenuHospital);
+                }
+            });
+
+            List<MonthMenuHospital> monthMenuHospitalList =
+                monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+
+            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+                createMonthFoodListResponseDTOS(monthMenuHospitalList);
+
+            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+        } else {
+            //TODO: majorCategory 별로 나눠서 업데이트 해야함
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+    }
+
+    private HospitalMenu createHospitalMenu(MonthMenuSaveRequestDTO requestDTO,
+                                            MonthMenusSave menusSave) {
+
+        Food food1 = foodRepository.findById(UUID.fromString(menusSave.getFood1()))
+                                   .orElse(null);
+        Food food2 = foodRepository.findById(UUID.fromString(menusSave.getFood2()))
+                                   .orElse(null);
+        Food food3 = foodRepository.findById(UUID.fromString(menusSave.getFood3()))
+                                   .orElse(null);
+        Food food4 = foodRepository.findById(UUID.fromString(menusSave.getFood4()))
+                                   .orElse(null);
+        Food food5 = foodRepository.findById(UUID.fromString(menusSave.getFood5()))
+                                   .orElse(null);
+        Food food6 = foodRepository.findById(UUID.fromString(menusSave.getFood6()))
+                                   .orElse(null);
+        Food food7 = foodRepository.findById(UUID.fromString(menusSave.getFood7()))
+                                   .orElse(null);
+
+        HospitalMenu hospitalMenu = HospitalMenu.builder()
+                                                .hospitalMenuKind(
+                                                    requestDTO.getMinorCategory())
+                                                .food1(food1)
+                                                .food2(food2)
+                                                .food3(food3)
+                                                .food4(food4)
+                                                .food5(food5)
+                                                .food6(food6)
+                                                .food7(food7)
+                                                .build();
+
+        hospitalMenuRepository.save(hospitalMenu);
+
+        return hospitalMenu;
+    }
+
+    private List<MonthFoodListResponseDTO> createMonthFoodListResponseDTOS(
+
+        List<MonthMenuHospital> monthMenuHospitalList) {
+
+        return monthMenuHospitalList.stream().map(MHMenu -> {
+
+            HospitalMenu hospitalMenu = MHMenu.getHospitalMenu();
+
+            List<FoodResponseDTO> foodList = Stream.of(
+                                                       hospitalMenu.getFood1(),
+                                                       hospitalMenu.getFood2(),
+                                                       hospitalMenu.getFood3(),
+                                                       hospitalMenu.getFood4(),
+                                                       hospitalMenu.getFood5(),
+                                                       hospitalMenu.getFood6(),
+                                                       hospitalMenu.getFood7()
+                                                   )
+                                                   .map(FoodResponseDTO::new)
+                                                   .toList();
+
+            return new MonthFoodListResponseDTO(MHMenu, foodList);
+        }).toList();
+    }
 }
-
-
