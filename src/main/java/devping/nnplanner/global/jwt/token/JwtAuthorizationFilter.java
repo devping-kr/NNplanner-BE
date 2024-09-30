@@ -1,5 +1,7 @@
 package devping.nnplanner.global.jwt.token;
 
+import devping.nnplanner.global.exception.CustomException;
+import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.user.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -39,14 +41,18 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
             tokenValue = jwtUtil.substringToken(tokenValue);
 
-            jwtUtil.validateToken(tokenValue);
-
-            Claims userinfo = jwtUtil.getUserInfoFromToken(tokenValue);
-
             try {
+                jwtUtil.validateToken(tokenValue);
+
+                Claims userinfo = jwtUtil.getUserInfoFromToken(tokenValue);
                 setAuthentication(userinfo.getSubject());
+
+            } catch (CustomException e) {
+                setErrorResponse(response, e.getErrorCode());
+                return;
             } catch (Exception e) {
                 log.error(e.getMessage());
+                setErrorResponse(response, ErrorCode.INTERNAL_SERVER_ERROR);
                 return;
             }
         }
@@ -70,5 +76,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsServiceImpl.loadUserByUsername(email);
         return new UsernamePasswordAuthenticationToken(userDetails, null,
             userDetails.getAuthorities());
+    }
+
+    private void setErrorResponse(HttpServletResponse response, ErrorCode errorCode)
+        throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(
+            "{\"message\": \"" + errorCode.getMessage() + "\"}");
     }
 }

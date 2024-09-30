@@ -6,7 +6,6 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "nnemail")
@@ -31,7 +30,6 @@ public class Email {
     private boolean isVerified;
 
     @NotNull
-    @Indexed(name = "createdAtIndex", expireAfterSeconds = 1800) // 30분
     private Instant createdAt;
 
     public void create(String email,
@@ -47,9 +45,12 @@ public class Email {
         this.createdAt = createdAt;
     }
 
-    public void update(String verificationCode, long expirationTime) {
+    public void update(String verificationCode,
+                       long expirationTime,
+                       Instant createdAt) {
         this.verificationCode = verificationCode;
         this.expirationTime = expirationTime;
+        this.createdAt = createdAt;
     }
 
     public void verify(boolean isVerified) {
