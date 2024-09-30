@@ -61,7 +61,10 @@ public class EmailService {
                                          .orElseThrow(
                                              () -> new CustomException(ErrorCode.NOT_FOUND));
 
-            email.update(verificationCode, Instant.now().toEpochMilli() + 30000);
+            email.update(
+                verificationCode,
+                Instant.now().toEpochMilli() + 30000,
+                Instant.now());
 
             emailRepository.save(email);
         } else {
