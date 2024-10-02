@@ -24,6 +24,9 @@ public class Survey extends BaseTimeEntity {
     @JoinColumn(name = "month_menu_id", nullable = false)
     private MonthMenu monthMenu;
 
+    private String surveyName;
+
+    @Column(name = "deadline_at")
     private LocalDateTime deadlineAt;
 
     @Enumerated(EnumType.STRING)
@@ -33,16 +36,10 @@ public class Survey extends BaseTimeEntity {
     @CollectionTable(name = "survey_questions", joinColumns = @JoinColumn(name = "survey_id"))
     private List<Question> questions = new ArrayList<>();
 
-    public Survey(MonthMenu monthMenu, LocalDateTime deadlineAt, List<Question> questions) {
+    public Survey(MonthMenu monthMenu, String surveyName, LocalDateTime deadlineAt, List<Question> questions) {
         this.monthMenu = monthMenu;
-        this.deadlineAt = deadlineAt != null ? deadlineAt : LocalDateTime.now().plusWeeks(2);
+        this.surveyName = surveyName;
+        this.deadlineAt = deadlineAt;
         this.questions = questions;
-        this.state = SurveyState.IN_PROGRESS;
-    }
-
-    public void checkDeadline() {
-        if (this.deadlineAt.isBefore(LocalDateTime.now())) {
-            this.state = SurveyState.CLOSED;
-        }
     }
 }

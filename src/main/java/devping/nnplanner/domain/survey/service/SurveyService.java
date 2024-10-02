@@ -3,18 +3,25 @@ package devping.nnplanner.domain.survey.service;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
 import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyListResponseDTO;
 import devping.nnplanner.domain.survey.dto.response.SurveyResponseDTO;
 import devping.nnplanner.domain.survey.entity.Question;
 import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -54,7 +61,7 @@ public class SurveyService {
         }
 
         // 설문 생성 (MonthMenu와 연관)
-        Survey survey = new Survey(monthMenu, deadline, allQuestions);
+        Survey survey = new Survey(monthMenu, requestDTO.getSurveyName(), deadline, allQuestions);
 
         Survey savedSurvey = surveyRepository.save(survey);
 
@@ -72,6 +79,70 @@ public class SurveyService {
             responseQuestions
         );
     }
+
+    @Transactional(readOnly = true)
+    public SurveyListResponseDTO getSurveys(String startDateStr, String endDateStr, String sort, int page, int pageSize, String search) {
+        // 기본 정렬 기준 설정
+        String defaultSort = "createdAt";  // 기본적으로 createdAt 필드로 정렬
+        Sort.Direction defaultDirection = Sort.Direction.DESC;  // 기본 정렬 방향은 내림차순
+
+        // sort 파라미터 처리
+        String sortField = defaultSort;
+        Sort.Direction sortDirection = defaultDirection;
+
+        if (sort != null && !sort.trim().isEmpty()) {
+            String[] sortParams = sort.split(",");
+            sortField = sortParams[0];  // 필드 이름 추출
+            if (sortParams.length > 1 && sortParams[1].equalsIgnoreCase("asc")) {
+                sortDirection = Sort.Direction.ASC;  // 정렬 방향이 asc이면 오름차순으로 설정
+            } else {
+                sortDirection = Sort.Direction.DESC;  // 그렇지 않으면 내림차순
+            }
+        }
+
+        // Pageable 객체 생성 시 동적으로 정렬 기준 적용
+        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(sortDirection, sortField));
+
+        // 날짜 문자열을 LocalDateTime으로 변환
+        LocalDateTime startDate = LocalDateTime.now().minusYears(1); // 기본 시작일은 1년 전
+        LocalDateTime endDate = LocalDateTime.now(); // 기본 종료일은 현재 시점
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+        if (startDateStr != null && !startDateStr.isEmpty()) {
+            startDate = LocalDateTime.parse(startDateStr, formatter);
+        }
+
+        if (endDateStr != null && !endDateStr.isEmpty()) {
+            endDate = LocalDateTime.parse(endDateStr, formatter);
+        }
+
+        // search가 null이거나 빈 값일 때 기본값 설정
+        String searchValue = (search == null || search.trim().isEmpty()) ? "" : search;
+
+        // 쿼리 실행
+        Page<Survey> surveyPage = surveyRepository.findSurveys(
+            searchValue,
+            startDate,
+            endDate,
+            pageable
+        );
+
+        // 결과 매핑
+        List<SurveyListResponseDTO.SurveyItemResponseDTO> surveys
+            = surveyPage.stream()
+                        .map(survey -> new SurveyListResponseDTO.SurveyItemResponseDTO(
+                            survey.getId(),
+                            survey.getSurveyName(),
+                            survey.getCreatedAt(),
+                            survey.getDeadlineAt(),
+                            survey.getState().toString()
+                        ))
+                        .collect(Collectors.toList());
+
+        return new SurveyListResponseDTO(surveyPage.getTotalElements(), page, surveyPage.getTotalPages(), surveys);
+    }
+
+
 
     // 필수 질문을 반환하는 메서드
     private List<Question> getMandatoryQuestions() {
