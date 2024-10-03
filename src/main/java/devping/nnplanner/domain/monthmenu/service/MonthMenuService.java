@@ -227,6 +227,13 @@ public class MonthMenuService {
         return monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
     }
 
+    public List<FoodResponseDTO> searchFood(String foodName, Pageable pageable) {
+
+        Page<Food> foodPage = foodRepository.findBySearchFood(foodName, pageable);
+
+        return foodPage.stream().map(FoodResponseDTO::new).toList();
+    }
+
     private HospitalMenu createHospitalMenu(MonthMenuSaveRequestDTO requestDTO,
                                             MonthMenusSave menusSave) {
 
