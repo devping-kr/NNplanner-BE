@@ -59,7 +59,8 @@ public class WebSecurityConfig {
                     "api/auths/**",
                     "api/openapis/**",
                     "/actuator/health",
-                    "/"
+                    "/",
+                    "/api/surveys/{surveyId}/responses"
                 ).permitAll()
                 .anyRequest().authenticated())
             .formLogin(AbstractAuthenticationFilterConfigurer::disable)

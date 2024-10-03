@@ -28,13 +28,23 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     @Query("SELECT sr.messagesToDietitian FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
     List<String> findMessagesToDietitian(Long surveyId);
 
-    // 만족도 분포 조회
-    @Query("SELECT sr.satisfactionScore, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.satisfactionScore")
-    Map<Integer, Long> getSatisfactionDistribution(Long surveyId);
+    // monthlySatisfaction 분포 조회
+    @Query("SELECT sr.monthlySatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.monthlySatisfaction")
+    List<Object[]> getMonthlySatisfactionDistribution(Long surveyId);
+
+    // portionSatisfaction 분포 조회
+    @Query("SELECT sr.portionSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.portionSatisfaction")
+    List<Object[]> getPortionSatisfactionDistribution(Long surveyId);
+
+    // hygieneSatisfaction 분포 조회
+    @Query("SELECT sr.hygieneSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.hygieneSatisfaction")
+    List<Object[]> getHygieneSatisfactionDistribution(Long surveyId);
+
+    // tasteSatisfaction 분포 조회
+    @Query("SELECT sr.tasteSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.tasteSatisfaction")
+    List<Object[]> getTasteSatisfactionDistribution(Long surveyId);
 
     // 평균 점수 조회
-    @Query("SELECT AVG(sr.totalSatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) " +
-        "FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
+    @Query("SELECT AVG(sr.monthlySatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
     Object[] findAverageScores(Long surveyId);
 }
-

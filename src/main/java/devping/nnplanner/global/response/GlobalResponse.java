@@ -30,4 +30,10 @@ public class GlobalResponse {
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ApiResponse.of(message, data));
     }
+
+    public static <T> ResponseEntity<ApiResponse<T>> NO_CONTENT() {
+        return ResponseEntity
+            .status(HttpStatus.NO_CONTENT)
+            .body(null);
+    }
 }
