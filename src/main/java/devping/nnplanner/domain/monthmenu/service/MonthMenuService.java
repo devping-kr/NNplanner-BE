@@ -218,11 +218,14 @@ public class MonthMenuService {
             });
 
             monthMenuRepository.delete(monthMenu);
-
         }
-
+        //TODO: 학교식단 삭제 구현해야함
     }
 
+    public Integer countMonthMenu(UserDetailsImpl userDetails) {
+
+        return monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
+    }
 
     private HospitalMenu createHospitalMenu(MonthMenuSaveRequestDTO requestDTO,
                                             MonthMenusSave menusSave) {

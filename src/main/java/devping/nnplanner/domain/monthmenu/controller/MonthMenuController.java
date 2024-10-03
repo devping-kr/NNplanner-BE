@@ -105,6 +105,14 @@ public class MonthMenuController {
         return GlobalResponse.OK("월별 식단 삭제 성공", null);
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponse<Integer>> countMonthMenu(
+        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Integer count = monthMenuService.countMonthMenu(userDetails);
+
+        return GlobalResponse.OK("월별 식단 카운트 성공", count);
+    }
 
 
     @PostMapping("/{mmId}/surveys")
