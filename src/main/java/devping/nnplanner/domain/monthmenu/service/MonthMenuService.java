@@ -191,6 +191,49 @@ public class MonthMenuService {
         }
     }
 
+    public void deleteMonthMenu(UUID monthMenuId) {
+
+        MonthMenu monthMenu =
+            monthMenuRepository.findById(monthMenuId)
+                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
+
+            List<MonthMenuHospital> monthMenuHospitalList =
+                monthMenuHospitalRepository
+                    .findAllByMonthMenu_MonthMenuId(monthMenu.getMonthMenuId());
+
+            monthMenuHospitalList.forEach(monthMenuHospital -> {
+
+                HospitalMenu hospitalMenu =
+                    hospitalMenuRepository
+                        .findById(monthMenuHospital.getHospitalMenu().getHospitalMenuId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                monthMenuHospitalRepository.delete(monthMenuHospital);
+
+                if (hospitalMenu.getCreatedBy() != null) {
+                    hospitalMenuRepository.delete(hospitalMenu);
+                }
+            });
+
+            monthMenuRepository.delete(monthMenu);
+        }
+        //TODO: 학교식단 삭제 구현해야함
+    }
+
+    public Integer countMonthMenu(UserDetailsImpl userDetails) {
+
+        return monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
+    }
+
+    public List<FoodResponseDTO> searchFood(String foodName, Pageable pageable) {
+
+        Page<Food> foodPage = foodRepository.findBySearchFood(foodName, pageable);
+
+        return foodPage.stream().map(FoodResponseDTO::new).toList();
+    }
+
     private HospitalMenu createHospitalMenu(MonthMenuSaveRequestDTO requestDTO,
                                             MonthMenusSave menusSave) {
 

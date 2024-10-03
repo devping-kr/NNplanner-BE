@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nnplanner-deployment  # Deployment의 이름
+  labels:
+    app: nnplanner  # Deployment의 라벨
+spec:
+  replicas: 1  # 원하는 복제본 수
+  selector:
+    matchLabels:
+      app: nnplanner  # ReplicaSet이 관리할 pod 라벨
+  template:
+    metadata:
+      labels:
+        app: nnplanner  # pod의 라벨
+    spec:
+      containers:
+        - name: nnplanner  # 컨테이너 이름
+          image: nn-hub.kr.ncr.ntruss.com/nnplanner:latest  # Docker 레지스트리에서 가져올 이미지
+          ports:
+            - containerPort: 8080  # Spring Boot 애플리케이션의 기본 포트
+      imagePullSecrets:
+        - name: regcred  # 이미지 풀 시크릿
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nnplanner  # 서비스의 이름
+spec:
+  type: LoadBalancer  # 외부 접근을 위한 LoadBalancer 타입
+  selector:
+    app: nnplanner  # 해당 앱을 위한 Service 선택자
+  ports:
+    - protocol: TCP
+      port: 443  # 외부로 노출할 포트를 443으로 변경 (HTTPS 트래픽)
+      targetPort: 8080  # 컨테이너의 포트 (nnplanner 컨테이너가 사용하는 포트)

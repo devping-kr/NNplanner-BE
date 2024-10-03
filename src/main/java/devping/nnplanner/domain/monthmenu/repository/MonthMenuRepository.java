@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface MonthMenuRepository extends JpaRepository<MonthMenu, UUID> {
 
     Page<MonthMenu> findAllByUser_UserId(Long userId, Pageable pageable);
+
+    Integer countByUser_UserId(Long userId);
 }
