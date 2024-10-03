@@ -30,11 +30,46 @@ public class SurveyResponse extends BaseTimeEntity {
     @Column(name = "messages_to_dietitian")
     private String messagesToDietitian;
 
+    private int monthlySatisfaction;
+    private int portionSatisfaction;
+    private int hygieneSatisfaction;
+    private int tasteSatisfaction;
+
+    @Column(name = "total_satisfaction", nullable = false)
+    private int totalSatisfaction;
+
+    @Column(name = "satisfaction_score", nullable = false)
     private int satisfactionScore;
-    private double totalSatisfaction;
-    private double portionSatisfaction;
-    private double hygieneSatisfaction;
-    private double tasteSatisfaction;
 
     private LocalDateTime responseDate;
+
+    public SurveyResponse(Survey survey, String likedMenus, String dislikedMenus,
+                          List<String> desiredMenus, String messagesToDietitian,
+                          int monthlySatisfaction, int portionSatisfaction,
+                          int hygieneSatisfaction, int tasteSatisfaction,
+                          LocalDateTime responseDate) {
+        this.survey = survey;
+        this.likedMenus = likedMenus;
+        this.dislikedMenus = dislikedMenus;
+        this.desiredMenus = desiredMenus;
+        this.messagesToDietitian = messagesToDietitian;
+        this.monthlySatisfaction = monthlySatisfaction;
+        this.portionSatisfaction = portionSatisfaction;
+        this.hygieneSatisfaction = hygieneSatisfaction;
+        this.tasteSatisfaction = tasteSatisfaction;
+        this.totalSatisfaction = calculateTotalSatisfaction();
+        this.satisfactionScore = calculateSatisfactionScore();
+        this.responseDate = responseDate;
+    }
+
+    // 총 만족도를 계산하는 메서드
+    public int calculateTotalSatisfaction() {
+        return (monthlySatisfaction + portionSatisfaction + hygieneSatisfaction + tasteSatisfaction) / 4;
+    }
+
+    // satisfactionScore 계산 메서드
+    public int calculateSatisfactionScore() {
+        // 여기서 원하는 로직으로 satisfactionScore를 계산
+        return (monthlySatisfaction + portionSatisfaction + hygieneSatisfaction + tasteSatisfaction) / 4;
+    }
 }
