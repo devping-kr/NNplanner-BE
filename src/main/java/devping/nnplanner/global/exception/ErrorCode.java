@@ -15,6 +15,9 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근이 금지되었습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
 
+    // MONTH_MENU
+    MONTH_MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "식단을 찾을 수 없습니다."),
+
     //JWT
     INVALID_JWT(HttpStatus.BAD_REQUEST, "유효하지 않는 JWT 서명 입니다."),
     EXPIRED_JWT(HttpStatus.BAD_REQUEST, "만료된 JWT token 입니다."),

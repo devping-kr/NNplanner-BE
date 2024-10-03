@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.survey.entity;
 
+import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -19,28 +20,26 @@ public class Survey extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long mmId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "month_menu_id", nullable = false)
+    private MonthMenu monthMenu;
 
+    private String surveyName;
+
+    @Column(name = "deadline_at")
     private LocalDateTime deadlineAt;
 
     @Enumerated(EnumType.STRING)
     private SurveyState state;
 
     @ElementCollection
-    @CollectionTable(name = "questions", joinColumns = @JoinColumn(name = "survey_id"))
-    @Column(name = "question")
-    private List<String> questions = new ArrayList<>();
+    @CollectionTable(name = "survey_questions", joinColumns = @JoinColumn(name = "survey_id"))
+    private List<Question> questions = new ArrayList<>();
 
-    public Survey(Long mmId, LocalDateTime deadlineAt, List<String> questions) {
-        this.mmId = mmId;
-        this.deadlineAt = deadlineAt != null ? deadlineAt : LocalDateTime.now().plusWeeks(2); // 기본 마감 기한 설정
+    public Survey(MonthMenu monthMenu, String surveyName, LocalDateTime deadlineAt, List<Question> questions) {
+        this.monthMenu = monthMenu;
+        this.surveyName = surveyName;
+        this.deadlineAt = deadlineAt;
         this.questions = questions;
-        this.state = SurveyState.IN_PROGRESS;
-    }
-
-    public void checkDeadline() {
-        if (this.deadlineAt.isBefore(LocalDateTime.now())) {
-            this.state = SurveyState.CLOSED;
-        }
     }
 }
