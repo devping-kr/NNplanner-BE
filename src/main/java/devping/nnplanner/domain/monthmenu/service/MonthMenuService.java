@@ -191,6 +191,39 @@ public class MonthMenuService {
         }
     }
 
+    public void deleteMonthMenu(UUID monthMenuId) {
+
+        MonthMenu monthMenu =
+            monthMenuRepository.findById(monthMenuId)
+                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
+
+            List<MonthMenuHospital> monthMenuHospitalList =
+                monthMenuHospitalRepository
+                    .findAllByMonthMenu_MonthMenuId(monthMenu.getMonthMenuId());
+
+            monthMenuHospitalList.forEach(monthMenuHospital -> {
+
+                HospitalMenu hospitalMenu =
+                    hospitalMenuRepository
+                        .findById(monthMenuHospital.getHospitalMenu().getHospitalMenuId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                monthMenuHospitalRepository.delete(monthMenuHospital);
+
+                if (hospitalMenu.getCreatedBy() != null) {
+                    hospitalMenuRepository.delete(hospitalMenu);
+                }
+            });
+
+            monthMenuRepository.delete(monthMenu);
+
+        }
+
+    }
+
+
     private HospitalMenu createHospitalMenu(MonthMenuSaveRequestDTO requestDTO,
                                             MonthMenusSave menusSave) {
 

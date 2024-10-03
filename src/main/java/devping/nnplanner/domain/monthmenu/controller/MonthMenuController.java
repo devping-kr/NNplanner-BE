@@ -20,6 +20,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -87,6 +95,18 @@ public class MonthMenuController {
         return GlobalResponse.OK("월별 식단 수정 성공", monthMenuResponseDTO);
     }
 
+
+    @DeleteMapping("/{monthMenuId}")
+    public ResponseEntity<ApiResponse<Void>> deleteMonthMenu(
+        @PathVariable("monthMenuId") UUID monthMenuId) {
+
+        monthMenuService.deleteMonthMenu(monthMenuId);
+
+        return GlobalResponse.OK("월별 식단 삭제 성공", null);
+    }
+
+
+
     @PostMapping("/{mmId}/surveys")
     public ResponseEntity<ApiResponse<SurveyResponseDTO>> createSurvey(
         @PathVariable("mmId") UUID mmId,
@@ -96,5 +116,4 @@ public class MonthMenuController {
 
         return GlobalResponse.CREATED("설문 생성 성공", responseDTO);
     }
-
 }
