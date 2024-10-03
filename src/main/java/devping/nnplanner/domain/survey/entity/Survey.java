@@ -5,6 +5,7 @@ import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,16 +25,19 @@ public class Survey extends BaseTimeEntity {
     @JoinColumn(name = "month_menu_id", nullable = false)
     private MonthMenu monthMenu;
 
+    @Setter
     private String surveyName;
 
+    @Setter
     @Column(name = "deadline_at")
     private LocalDateTime deadlineAt;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private SurveyState state;
 
-    @ElementCollection
-    @CollectionTable(name = "survey_questions", joinColumns = @JoinColumn(name = "survey_id"))
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "survey_id")  // Survey의 id를 참조하도록 설정
     private List<Question> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "survey", cascade = CascadeType.REMOVE, orphanRemoval = true)

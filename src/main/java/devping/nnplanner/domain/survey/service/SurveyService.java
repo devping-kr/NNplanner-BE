@@ -2,8 +2,10 @@ package devping.nnplanner.domain.survey.service;
 
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
+import devping.nnplanner.domain.survey.dto.request.QuestionUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
+import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.*;
 import devping.nnplanner.domain.survey.entity.Question;
 import devping.nnplanner.domain.survey.entity.Survey;
@@ -256,4 +258,52 @@ public class SurveyService {
             new Question("영양사에게 한마디", "text")
         );
     }
+
+    @Transactional
+    public SurveyUpdateResponseDTO updateSurvey(Long surveyId, SurveyUpdateRequestDTO requestDTO) {
+        Survey survey = surveyRepository.findById(surveyId)
+                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+
+        List<SurveyUpdateResponseDTO.QuestionResponseDTO> updatedQuestions = new ArrayList<>();
+
+        // 설문 이름 수정
+        if (requestDTO.getSurveyName() != null && !requestDTO.getSurveyName().isEmpty()) {
+            survey.setSurveyName(requestDTO.getSurveyName());
+        }
+
+        // 마감 기한 수정
+        if (requestDTO.getDeadlineAt() != null && !requestDTO.getDeadlineAt().isBefore(LocalDateTime.now())) {
+            survey.setDeadlineAt(requestDTO.getDeadlineAt());
+        }
+
+        // 설문 상태 수정
+        if (requestDTO.getState() != null) {
+            survey.setState(requestDTO.getState());
+        }
+
+        // 추가 질문 수정
+        if (requestDTO.getQuestions() != null && !requestDTO.getQuestions().isEmpty()) {
+            for (QuestionUpdateRequestDTO questionUpdateRequest : requestDTO.getQuestions()) {
+                Question question = survey.getQuestions().stream()
+                                          .filter(q -> q.getId().equals(questionUpdateRequest.getQuestionId()))
+                                          .findFirst()
+                                          .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+
+                question.setQuestion(questionUpdateRequest.getQuestion());
+
+                updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
+            }
+        }
+
+        surveyRepository.save(survey);
+
+        return new SurveyUpdateResponseDTO(
+            survey.getId(),
+            survey.getSurveyName(),
+            survey.getDeadlineAt(),
+            survey.getState(),
+            updatedQuestions
+        );
+    }
+
 }

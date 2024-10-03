@@ -1,9 +1,11 @@
 package devping.nnplanner.domain.survey.controller;
 
 import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
+import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.SurveyDetailResponseDTO;
 import devping.nnplanner.domain.survey.dto.response.SurveyListResponseDTO;
 import devping.nnplanner.domain.survey.dto.response.SurveyResponseResponseDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyUpdateResponseDTO;
 import devping.nnplanner.domain.survey.service.SurveyService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
@@ -50,6 +52,16 @@ public class SurveyController {
         SurveyResponseResponseDTO responseDTO = surveyService.submitSurveyResponse(surveyId, surveyResponseRequestDTO);
 
         return GlobalResponse.CREATED("설문 응답 성공", responseDTO);
+    }
+
+    @PutMapping("/{surveyId}")
+    public ResponseEntity<ApiResponse<SurveyUpdateResponseDTO>> updateSurvey(
+        @PathVariable Long surveyId,
+        @RequestBody @Valid SurveyUpdateRequestDTO requestDTO) {
+
+        SurveyUpdateResponseDTO responseDTO = surveyService.updateSurvey(surveyId, requestDTO);
+
+        return GlobalResponse.OK("설문 수정 성공", responseDTO);
     }
 
     @DeleteMapping("/{surveyId}")
