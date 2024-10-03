@@ -164,19 +164,24 @@ public class SurveyService {
         List<String> messagesToDietitian = surveyResponseRepository.findMessagesToDietitian(surveyId);
         response.setMessagesToDietitian(messagesToDietitian.isEmpty() ? List.of() : messagesToDietitian);
 
-        Map<Integer, Long> monthlyDistribution = surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId);
-        Map<Integer, Long> portionDistribution = surveyResponseRepository.getPortionSatisfactionDistribution(surveyId);
-        Map<Integer, Long> hygieneDistribution = surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId);
-        Map<Integer, Long> tasteDistribution = surveyResponseRepository.getTasteSatisfactionDistribution(surveyId);
-
+        // 만족도 분포 처리
         Map<String, Integer> satisfactionDistribution = new HashMap<>();
-        monthlyDistribution.forEach((key, value) -> satisfactionDistribution.put("monthly_" + key, value.intValue()));
-        portionDistribution.forEach((key, value) -> satisfactionDistribution.put("portion_" + key, value.intValue()));
-        hygieneDistribution.forEach((key, value) -> satisfactionDistribution.put("hygiene_" + key, value.intValue()));
-        tasteDistribution.forEach((key, value) -> satisfactionDistribution.put("taste_" + key, value.intValue()));
+
+        List<Object[]> monthlyDistribution = surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId);
+        monthlyDistribution.forEach(result -> satisfactionDistribution.put("monthly_" + result[0], ((Long) result[1]).intValue()));
+
+        List<Object[]> portionDistribution = surveyResponseRepository.getPortionSatisfactionDistribution(surveyId);
+        portionDistribution.forEach(result -> satisfactionDistribution.put("portion_" + result[0], ((Long) result[1]).intValue()));
+
+        List<Object[]> hygieneDistribution = surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId);
+        hygieneDistribution.forEach(result -> satisfactionDistribution.put("hygiene_" + result[0], ((Long) result[1]).intValue()));
+
+        List<Object[]> tasteDistribution = surveyResponseRepository.getTasteSatisfactionDistribution(surveyId);
+        tasteDistribution.forEach(result -> satisfactionDistribution.put("taste_" + result[0], ((Long) result[1]).intValue()));
 
         response.setSatisfactionDistribution(satisfactionDistribution);
 
+        // 평균 점수 계산
         Object[] avgScores = surveyResponseRepository.findAverageScores(surveyId);
         if (avgScores != null && avgScores.length == 4) {
             SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();

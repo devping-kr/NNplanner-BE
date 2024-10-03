@@ -28,21 +28,21 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     @Query("SELECT sr.messagesToDietitian FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
     List<String> findMessagesToDietitian(Long surveyId);
 
-    // 만족도 분포 조회 (전체 만족도 스코어 필드는 없기 때문에 이 부분은 다른 필드로 분리)
+    // monthlySatisfaction 분포 조회
     @Query("SELECT sr.monthlySatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.monthlySatisfaction")
-    Map<Integer, Long> getMonthlySatisfactionDistribution(Long surveyId);
+    List<Object[]> getMonthlySatisfactionDistribution(Long surveyId);
 
     // portionSatisfaction 분포 조회
     @Query("SELECT sr.portionSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.portionSatisfaction")
-    Map<Integer, Long> getPortionSatisfactionDistribution(Long surveyId);
+    List<Object[]> getPortionSatisfactionDistribution(Long surveyId);
 
     // hygieneSatisfaction 분포 조회
     @Query("SELECT sr.hygieneSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.hygieneSatisfaction")
-    Map<Integer, Long> getHygieneSatisfactionDistribution(Long surveyId);
+    List<Object[]> getHygieneSatisfactionDistribution(Long surveyId);
 
     // tasteSatisfaction 분포 조회
     @Query("SELECT sr.tasteSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.tasteSatisfaction")
-    Map<Integer, Long> getTasteSatisfactionDistribution(Long surveyId);
+    List<Object[]> getTasteSatisfactionDistribution(Long surveyId);
 
     // 평균 점수 조회
     @Query("SELECT AVG(sr.monthlySatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
