@@ -36,6 +36,9 @@ public class Survey extends BaseTimeEntity {
     @CollectionTable(name = "survey_questions", joinColumns = @JoinColumn(name = "survey_id"))
     private List<Question> questions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<SurveyResponse> responses = new ArrayList<>();
+
     public Survey(MonthMenu monthMenu, String surveyName, LocalDateTime deadlineAt, List<Question> questions) {
         this.monthMenu = monthMenu;
         this.surveyName = surveyName;

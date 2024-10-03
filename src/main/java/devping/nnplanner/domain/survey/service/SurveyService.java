@@ -235,10 +235,12 @@ public class SurveyService {
         return new SurveyResponseResponseDTO(surveyResponse.getId(), survey.getId(), surveyResponse.getResponseDate());
     }
 
+    public void deleteSurvey(Long surveyId) {
+        Survey survey = surveyRepository.findById(surveyId)
+                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-
-
-
+        surveyRepository.delete(survey);
+    }
 
 
     // 필수 질문을 반환하는 메서드

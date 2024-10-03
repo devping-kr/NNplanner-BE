@@ -9,7 +9,6 @@ import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,5 +50,14 @@ public class SurveyController {
         SurveyResponseResponseDTO responseDTO = surveyService.submitSurveyResponse(surveyId, surveyResponseRequestDTO);
 
         return GlobalResponse.CREATED("설문 응답 성공", responseDTO);
+    }
+
+    @DeleteMapping("/{surveyId}")
+    public ResponseEntity<ApiResponse<Void>> deleteSurvey(
+        @PathVariable Long surveyId) {
+
+        surveyService.deleteSurvey(surveyId);
+
+        return GlobalResponse.NO_CONTENT();
     }
 }
