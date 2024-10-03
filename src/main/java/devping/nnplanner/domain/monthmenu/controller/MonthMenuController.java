@@ -2,6 +2,7 @@ package devping.nnplanner.domain.monthmenu.controller;
 
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
@@ -13,6 +14,8 @@ import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -27,11 +30,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RequestMapping("/api/monthmenus")
@@ -95,7 +95,6 @@ public class MonthMenuController {
         return GlobalResponse.OK("월별 식단 수정 성공", monthMenuResponseDTO);
     }
 
-
     @DeleteMapping("/{monthMenuId}")
     public ResponseEntity<ApiResponse<Void>> deleteMonthMenu(
         @PathVariable("monthMenuId") UUID monthMenuId) {
@@ -114,6 +113,16 @@ public class MonthMenuController {
         return GlobalResponse.OK("월별 식단 카운트 성공", count);
     }
 
+    @GetMapping("/foods")
+    public ResponseEntity<ApiResponse<List<FoodResponseDTO>>> searchFood(
+        @RequestParam(name = "foodName") String foodName,
+        @PageableDefault(page = 0, size = 3, sort = "createdAt",
+            direction = Sort.Direction.DESC) Pageable pageable) {
+
+        List<FoodResponseDTO> foodResponseDTOList = monthMenuService.searchFood(foodName, pageable);
+
+        return GlobalResponse.OK("음식 정보 검색 성공", foodResponseDTOList);
+    }
 
     @PostMapping("/{mmId}/surveys")
     public ResponseEntity<ApiResponse<SurveyResponseDTO>> createSurvey(
