@@ -6,12 +6,13 @@ import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
 import devping.nnplanner.domain.monthmenu.service.MonthMenuService;
+import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyResponseDTO;
+import devping.nnplanner.domain.survey.service.SurveyService;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequestMapping("/api/monthmenus")
@@ -35,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MonthMenuController {
 
     private final MonthMenuService monthMenuService;
+    private final SurveyService surveyService;
 
     @PostMapping("/auto")
     public ResponseEntity<ApiResponse<List<MonthMenuAutoResponseDTO>>> createMonthMenuAuto(
@@ -89,6 +95,7 @@ public class MonthMenuController {
         return GlobalResponse.OK("월별 식단 수정 성공", monthMenuResponseDTO);
     }
 
+
     @DeleteMapping("/{monthMenuId}")
     public ResponseEntity<ApiResponse<Void>> deleteMonthMenu(
         @PathVariable("monthMenuId") UUID monthMenuId) {
@@ -107,4 +114,14 @@ public class MonthMenuController {
         return GlobalResponse.OK("월별 식단 카운트 성공", count);
     }
 
+
+    @PostMapping("/{mmId}/surveys")
+    public ResponseEntity<ApiResponse<SurveyResponseDTO>> createSurvey(
+        @PathVariable("mmId") UUID mmId,
+        @RequestBody @Valid SurveyRequestDTO requestDTO) {
+
+        SurveyResponseDTO responseDTO = surveyService.createSurvey(mmId, requestDTO);
+
+        return GlobalResponse.CREATED("설문 생성 성공", responseDTO);
+    }
 }
