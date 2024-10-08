@@ -51,4 +51,3 @@ public class MenuCategoryController {
         return GlobalResponse.OK("작성한 식단 카테고리별 전체 조회 성공", monthMenuPageResponseDTO);
     }
 }
-
