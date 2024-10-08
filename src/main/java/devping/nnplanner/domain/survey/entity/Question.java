@@ -1,16 +1,22 @@
 package devping.nnplanner.domain.survey.entity;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Entity
 @Getter
+@Setter
 @NoArgsConstructor
-@Embeddable
 public class Question {
 
-    private String question;  // 질문 내용
-    private String answerType;  // 답변 형식 (text, radio)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String question;
+    private String answerType;
 
     public Question(String question, String answerType) {
         this.question = question;

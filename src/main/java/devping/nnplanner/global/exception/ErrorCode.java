@@ -33,7 +33,8 @@ public enum ErrorCode {
     //SURVEY
     SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "설문을 찾을 수 없습니다."),
     INVALID_SURVEY_DEADLINE(HttpStatus.BAD_REQUEST, "설문 마감 기한이 현재 시간보다 이전입니다."),
-    DUPLICATE_SURVEY(HttpStatus.CONFLICT, "동일한 설문이 이미 존재합니다.");
+    DUPLICATE_SURVEY(HttpStatus.CONFLICT, "동일한 설문이 이미 존재합니다."),
+    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "질문을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

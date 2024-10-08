@@ -61,7 +61,8 @@ public class WebSecurityConfig {
                     "/api/menu-categories",
                     "/actuator/health",
                     "/",
-                    "/error"
+                    "/error",
+                    "/api/surveys/{surveyId}/responses"
                 ).permitAll()
                 .anyRequest().authenticated())
             .formLogin(AbstractAuthenticationFilterConfigurer::disable)
