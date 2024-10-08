@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@RequestMapping("/api/monthmenus")
+@RequestMapping("/api/month-menus")
 @RestController
 @RequiredArgsConstructor
 public class MonthMenuController {
