@@ -29,4 +29,14 @@ public class UserService {
         }
     }
 
+    public void editPassword(UserDetailsImpl userDetails, UserRequestDTO userRequestDTO) {
+
+        User user = userRepository.findById(userDetails.getUser().getUserId())
+                                  .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        user.update(passwordEncoder.encode(userRequestDTO.getPassword()));
+
+        userRepository.save(user);
+    }
+
 }
