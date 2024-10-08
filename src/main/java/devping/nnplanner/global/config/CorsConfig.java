@@ -19,11 +19,11 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
-            "http://default-nnplanner-cd7c0-26459303-247c8a4f5ac3.kr.lb.naverncp.com"
+            "https://port-0-nnplanner-be-2aat2llv7xzes5.sel5.cloudtype.app"
         ));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-        
+
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);

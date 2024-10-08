@@ -6,4 +6,6 @@ import java.util.List;
 public interface HospitalMenuRepositoryCustom {
 
     List<HospitalMenu> findRandomHospitalMenusByCategory(String hospitalMenuKind, int dayCount);
+
+    List<String> findDistinctHospitalMenuKinds();
 }
