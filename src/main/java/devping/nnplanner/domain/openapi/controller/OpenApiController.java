@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@RequestMapping("/api/openapis")
+@RequestMapping("/api/open-apis")
 @RestController
 @RequiredArgsConstructor
 public class OpenApiController {
