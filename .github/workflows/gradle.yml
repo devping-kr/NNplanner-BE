@@ -1,0 +1,58 @@
+name: Deploy to cloudtype
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Connect deploy key
+        uses: cloudtype-github-actions/connect@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          ghtoken: ${{ secrets.GH_TOKEN }}
+      - name: Deploy
+        uses: cloudtype-github-actions/deploy@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          project: daeun/nnplanner
+          stage: main
+          yaml: >
+            name: nnplanner-be
+
+            app: java@17
+
+            options:
+              ports: "8080"
+              env:
+                - name: LOCAL_MONGODB_URL
+                  value: ${{secrets.LOCAL_MONGODB_URL}}
+                - name: GOOGLE_EMAIL
+                  value: ${{secrets.GOOGLE_EMAIL}}
+                - name: GOOGLE_PASSWORD
+                  value: ${{secrets.GOOGLE_PASSWORD}}
+                - name: JWT_SECRET_KEY
+                  value: ${{secrets.JWT_SECRET_KEY}}
+                - name: SCHOOL_API_KEY
+                  value: ${{secrets.SCHOOL_API_KEY}}
+                - name: FOOD_API_KEY
+                  value: ${{secrets.FOOD_API_KEY}}
+                - name: LOCAL_DB_URL
+                  value: ${{secrets.LOCAL_DB_URL}}
+                - name: LOCAL_DB_USER
+                  value: ${{secrets.LOCAL_DB_USER}}
+                - name: REDIS_PORT
+                  value: ${{secrets.REDIS_PORT}}
+                - name: LOCAL_DB_PASSWORD
+                  value: ${{secrets.LOCAL_DB_PASSWORD}}
+                - name: REDIS_HOST
+                  value: ${{secrets.REDIS_HOST}}
+              buildenv: []
+              healthz: /actuator/health
+            context:
+              git:
+                url: git@github.com:${{ github.repository }}.git
+                ref: ${{ github.ref }}
