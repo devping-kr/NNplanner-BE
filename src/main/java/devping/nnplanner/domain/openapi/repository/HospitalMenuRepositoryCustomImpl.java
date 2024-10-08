@@ -27,4 +27,13 @@ public class HospitalMenuRepositoryCustomImpl implements HospitalMenuRepositoryC
             .limit(dayCount)
             .fetch();
     }
+
+    public List<String> findDistinctHospitalMenuKinds() {
+        QHospitalMenu hospitalMenu = QHospitalMenu.hospitalMenu;
+
+        return queryFactory.select(hospitalMenu.hospitalMenuKind)
+                           .distinct()
+                           .from(hospitalMenu)
+                           .fetch();
+    }
 }
