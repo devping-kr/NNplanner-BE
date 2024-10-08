@@ -53,13 +53,15 @@ public class WebSecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers( // 인증o
-                    "api/auths/logout")
+                    "/api/auths/logout")
                 .authenticated()
                 .requestMatchers( // 인증x
-                    "api/auths/**",
-                    "api/openapis/**",
+                    "/api/auths/**",
+                    "/api/openapis/**",
+                    "/api/menu-categories",
                     "/actuator/health",
-                    "/"
+                    "/",
+                    "/error"
                 ).permitAll()
                 .anyRequest().authenticated())
             .formLogin(AbstractAuthenticationFilterConfigurer::disable)
