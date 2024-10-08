@@ -3,6 +3,7 @@ package devping.nnplanner.domain.openapi.controller;
 import devping.nnplanner.domain.openapi.service.SchoolInfoService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -30,7 +31,7 @@ public class OpenApiController {
     public ResponseEntity<ApiResponse<Void>> startFoodBatch() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
-                .addLong("timestamp", System.currentTimeMillis())
+                .addString("uniqueId", UUID.randomUUID().toString())
                 .toJobParameters();
 
             jobLauncher.run(importFoodDataJob, jobParameters);
@@ -57,7 +58,7 @@ public class OpenApiController {
     public ResponseEntity<ApiResponse<Void>> getHospitalMenu() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
-                .addLong("timestamp", System.currentTimeMillis())
+                .addString("uniqueId", UUID.randomUUID().toString())
                 .toJobParameters();
 
             jobLauncher.run(importHospitalMenuJob, jobParameters);
