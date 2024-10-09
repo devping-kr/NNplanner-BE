@@ -1,15 +1,12 @@
 package devping.nnplanner.domain.openapi.controller;
 
+import devping.nnplanner.domain.openapi.service.BatchService;
 import devping.nnplanner.domain.openapi.service.SchoolInfoService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionException;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,28 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class OpenApiController {
 
     private final JobLauncher jobLauncher;
-    private final Job importFoodDataJob;
     private final Job importHospitalMenuJob;
     private final SchoolInfoService schoolInfoService;
+    private final BatchService batchService;
 
     @GetMapping("/food")
     public ResponseEntity<ApiResponse<Void>> startFoodBatch() {
-        try {
-            JobParameters jobParameters = new JobParametersBuilder()
-                .addString("uniqueId", UUID.randomUUID().toString())
-                .toJobParameters();
 
-            jobLauncher.run(importFoodDataJob, jobParameters);
+        batchService.startFoodBatchJob();
 
-            return GlobalResponse.OK("음식 api 호출 성공", null);
-
-        } catch (Exception e) {
-
-            log.error(e.getMessage());
-
-            return GlobalResponse.INTERNAL_SERVER_ERROR("음식 api 호출 실패", null);
-        }
+        return GlobalResponse.OK("음식 API 호출 성공, 배치 작업이 백그라운드에서 실행됩니다.", null);
     }
+
 
     @GetMapping("/schoolinfo")
     public ResponseEntity<ApiResponse<Void>> getSchoolInfo() {
@@ -56,20 +43,9 @@ public class OpenApiController {
 
     @GetMapping("/hospital")
     public ResponseEntity<ApiResponse<Void>> getHospitalMenu() {
-        try {
-            JobParameters jobParameters = new JobParametersBuilder()
-                .addString("uniqueId", UUID.randomUUID().toString())
-                .toJobParameters();
 
-            jobLauncher.run(importHospitalMenuJob, jobParameters);
+        batchService.startHospitalMenuBatchJob();
 
-            return GlobalResponse.OK("병원 메뉴 필터 성공", null);
-
-        } catch (JobExecutionException e) {
-
-            log.error(e.getMessage());
-
-            return GlobalResponse.INTERNAL_SERVER_ERROR("병원 메뉴 필터 실행 실패", null);
-        }
+        return GlobalResponse.OK("병원 메뉴 필터 성공, 배치 작업이 백그라운드에서 실행됩니다.", null);
     }
 }
