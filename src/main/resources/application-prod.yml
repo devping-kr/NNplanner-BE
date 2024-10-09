@@ -6,8 +6,8 @@ spring:
     password: ${LOCAL_DB_PASSWORD}
     hikari:
       maximum-pool-size: 30  # 최대 연결 풀 크기
-      connection-timeout: 60000  # 연결 타임아웃 (밀리초)
-      idle-timeout: 600000  # 연결이 유휴 상태로 남아있을 수 있는 최대 시간
+      connection-timeout: 1800000  # 연결 타임아웃 (밀리초)
+      idle-timeout: 1800000  # 연결이 유휴 상태로 남아있을 수 있는 최대 시간
       max-lifetime: 1800000  # 연결이 풀에 남아있을 수 있는 최대 시간
 
   batch:
@@ -58,6 +58,10 @@ api:
     key: ${SCHOOL_API_KEY}
   food:
     key: ${FOOD_API_KEY}
+
+server:
+  tomcat:
+    connection-timeout: 1800000
 
 management:
   endpoints:
