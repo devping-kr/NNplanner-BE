@@ -59,7 +59,7 @@ public class WebSecurityConfig {
                 .authenticated()
                 .requestMatchers( // 인증x
                     "/api/auths/**",
-                    "/api/openapis/**",
+                    "/api/open-apis/**",
                     "/api/menu-categories",
                     "/actuator/health",
                     "/",
