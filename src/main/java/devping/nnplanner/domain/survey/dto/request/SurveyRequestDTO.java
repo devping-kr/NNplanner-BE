@@ -5,12 +5,13 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @RequiredArgsConstructor
 public class SurveyRequestDTO {
 
-    private final Long mmId; // 월별 식단 ID
+    private final UUID mmId; // 월별 식단 ID
     private String surveyName;
     private final LocalDateTime deadlineAt; // 설문 마감 기한
     private final List<AdditionalQuestionDTO> additionalQuestions; // 추가 질문 목록
