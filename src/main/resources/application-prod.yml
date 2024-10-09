@@ -59,10 +59,6 @@ api:
   food:
     key: ${FOOD_API_KEY}
 
-server:
-  tomcat:
-    connection-timeout: 1800000
-
 management:
   endpoints:
     web:
