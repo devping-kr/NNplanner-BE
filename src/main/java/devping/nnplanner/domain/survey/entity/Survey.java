@@ -48,5 +48,6 @@ public class Survey extends BaseTimeEntity {
         this.surveyName = surveyName;
         this.deadlineAt = deadlineAt;
         this.questions = questions;
+        this.state = SurveyState.IN_PROGRESS;
     }
 }
