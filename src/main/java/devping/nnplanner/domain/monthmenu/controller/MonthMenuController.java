@@ -123,14 +123,4 @@ public class MonthMenuController {
 
         return GlobalResponse.OK("음식 정보 검색 성공", foodResponseDTOList);
     }
-
-    @PostMapping("/{mmId}/surveys")
-    public ResponseEntity<ApiResponse<SurveyResponseDTO>> createSurvey(
-        @PathVariable("mmId") UUID mmId,
-        @RequestBody @Valid SurveyRequestDTO requestDTO) {
-
-        SurveyResponseDTO responseDTO = surveyService.createSurvey(mmId, requestDTO);
-
-        return GlobalResponse.CREATED("설문 생성 성공", responseDTO);
-    }
 }

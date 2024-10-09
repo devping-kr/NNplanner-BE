@@ -1,11 +1,9 @@
 package devping.nnplanner.domain.survey.controller;
 
+import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
-import devping.nnplanner.domain.survey.dto.response.SurveyDetailResponseDTO;
-import devping.nnplanner.domain.survey.dto.response.SurveyListResponseDTO;
-import devping.nnplanner.domain.survey.dto.response.SurveyResponseResponseDTO;
-import devping.nnplanner.domain.survey.dto.response.SurveyUpdateResponseDTO;
+import devping.nnplanner.domain.survey.dto.response.*;
 import devping.nnplanner.domain.survey.service.SurveyService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
@@ -20,6 +18,15 @@ import org.springframework.web.bind.annotation.*;
 public class SurveyController {
 
     private final SurveyService surveyService;
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<SurveyResponseDTO>> createSurvey(
+        @RequestBody @Valid SurveyRequestDTO requestDTO) {
+
+        SurveyResponseDTO responseDTO = surveyService.createSurvey(requestDTO);
+
+        return GlobalResponse.CREATED("설문 생성 성공", responseDTO);
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<SurveyListResponseDTO>> getSurveys(

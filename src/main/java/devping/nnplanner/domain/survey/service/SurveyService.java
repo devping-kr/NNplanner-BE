@@ -23,7 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,12 +44,12 @@ public class SurveyService {
         this.monthMenuRepository = monthMenuRepository;
     }
 
-    public SurveyResponseDTO createSurvey(UUID mmId, SurveyRequestDTO requestDTO) {
+    public SurveyResponseDTO createSurvey(SurveyRequestDTO requestDTO) {
         // 월별 식단(MonthMenu)을 ID로 조회
-        MonthMenu monthMenu = monthMenuRepository.findById(mmId)
+        MonthMenu monthMenu = monthMenuRepository.findById(requestDTO.getMmId())
                                                  .orElseThrow(() -> new CustomException(ErrorCode.MONTH_MENU_NOT_FOUND));
 
-        // 마감 기한이 null이면 기본값(현재 시점으로부터 2주 뒤) 설정
+        // 마감 기한 설정
         LocalDateTime deadline = requestDTO.getDeadlineAt() != null ? requestDTO.getDeadlineAt() : LocalDateTime.now().plusWeeks(2);
 
         // 예외 처리: 마감 기한이 현재보다 이전일 경우
@@ -54,26 +57,22 @@ public class SurveyService {
             throw new CustomException(ErrorCode.INVALID_SURVEY_DEADLINE);
         }
 
-        // 필수 질문 추가
+        // 필수 질문 및 추가 질문 처리
         List<Question> allQuestions = new ArrayList<>(getMandatoryQuestions());
-
-        // 추가 질문이 있으면 처리
         if (requestDTO.getAdditionalQuestions() != null) {
             requestDTO.getAdditionalQuestions().forEach(q ->
                 allQuestions.add(new Question(q.getQuestion(), q.getAnswerType()))
             );
         }
 
-        // 설문 생성 (MonthMenu와 연관)
+        // 설문 생성
         Survey survey = new Survey(monthMenu, requestDTO.getSurveyName(), deadline, allQuestions);
-
         Survey savedSurvey = surveyRepository.save(survey);
 
         // 응답 DTO 생성
-        List<SurveyResponseDTO.QuestionResponseDTO> responseQuestions
-            = savedSurvey.getQuestions().stream()
-                         .map(q -> new SurveyResponseDTO.QuestionResponseDTO(q.getQuestion(), q.getAnswerType()))
-                         .collect(Collectors.toList());
+        List<SurveyResponseDTO.QuestionResponseDTO> responseQuestions = savedSurvey.getQuestions().stream()
+                                                                                   .map(q -> new SurveyResponseDTO.QuestionResponseDTO(q.getQuestion(), q.getAnswerType()))
+                                                                                   .collect(Collectors.toList());
 
         return new SurveyResponseDTO(
             savedSurvey.getId(),
