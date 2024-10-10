@@ -27,7 +27,7 @@ public class BatchService {
                 .toJobParameters();
 
             jobLauncher.run(importFoodDataJob, jobParameters);
-            log.info("음식 배치 작업 시작");
+            log.info("음식 배치 작업 끝");
 
         } catch (Exception e) {
             log.error("음식 배치 작업 실패: {}", e.getMessage());
@@ -42,7 +42,7 @@ public class BatchService {
                 .toJobParameters();
 
             jobLauncher.run(importHospitalMenuJob, jobParameters);
-            log.info("병원 메뉴 배치 작업 시작");
+            log.info("병원 메뉴 배치 작업 끝");
 
         } catch (Exception e) {
             log.error("배치 작업 실패: {}", e.getMessage());
