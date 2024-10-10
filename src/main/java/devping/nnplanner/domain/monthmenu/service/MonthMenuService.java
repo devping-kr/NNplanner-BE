@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -60,6 +61,7 @@ public class MonthMenuService {
         return Collections.emptyList();
     }
 
+    @Transactional
     public void saveMonthMenu(UserDetailsImpl userDetails, MonthMenuSaveRequestDTO requestDTO) {
 
         MenuCategory menuCategory =
@@ -97,6 +99,7 @@ public class MonthMenuService {
         }//TODO: majorCategory 별로 나눠서 저장해야함
     }
 
+    @Transactional(readOnly = true)
     public MonthMenuPageResponseDTO getAllMonthMenu(UserDetailsImpl userDetails,
                                                     Pageable pageable) {
 
@@ -117,6 +120,7 @@ public class MonthMenuService {
             menuResponseDTOList);
     }
 
+    @Transactional(readOnly = true)
     public MonthMenuResponseDTO getMonthMenu(UUID monthMenuId) {
 
         MonthMenu monthMenu =
@@ -138,6 +142,7 @@ public class MonthMenuService {
         }
     }
 
+    @Transactional
     public MonthMenuResponseDTO updateMonthMenu(UUID monthMenuId,
                                                 MonthMenuSaveRequestDTO requestDTO) {
 
@@ -191,6 +196,7 @@ public class MonthMenuService {
         }
     }
 
+    @Transactional
     public void deleteMonthMenu(UUID monthMenuId) {
 
         MonthMenu monthMenu =
@@ -222,11 +228,13 @@ public class MonthMenuService {
         //TODO: 학교식단 삭제 구현해야함
     }
 
+    @Transactional(readOnly = true)
     public Integer countMonthMenu(UserDetailsImpl userDetails) {
 
         return monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
     }
 
+    @Transactional(readOnly = true)
     public List<FoodResponseDTO> searchFood(String foodName, Pageable pageable) {
 
         Page<Food> foodPage = foodRepository.findBySearchFood(foodName, pageable);
