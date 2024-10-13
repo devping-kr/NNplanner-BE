@@ -10,6 +10,7 @@ import devping.nnplanner.domain.survey.dto.response.*;
 import devping.nnplanner.domain.survey.entity.Question;
 import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.entity.SurveyResponse;
+import devping.nnplanner.domain.survey.entity.SurveyState;
 import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.domain.survey.repository.SurveyResponseRepository;
 import devping.nnplanner.global.exception.CustomException;
@@ -70,9 +71,10 @@ public class SurveyService {
         Survey savedSurvey = surveyRepository.save(survey);
 
         // 응답 DTO 생성
-        List<SurveyResponseDTO.QuestionResponseDTO> responseQuestions = savedSurvey.getQuestions().stream()
-                                                                                   .map(q -> new SurveyResponseDTO.QuestionResponseDTO(q.getQuestion(), q.getAnswerType()))
-                                                                                   .collect(Collectors.toList());
+        List<SurveyResponseDTO.QuestionResponseDTO> responseQuestions
+            = savedSurvey.getQuestions().stream()
+                         .map(q -> new SurveyResponseDTO.QuestionResponseDTO(q.getQuestion(), q.getAnswerType()))
+                         .collect(Collectors.toList());
 
         return new SurveyResponseDTO(
             savedSurvey.getId(),
@@ -84,7 +86,8 @@ public class SurveyService {
     }
 
     @Transactional(readOnly = true)
-    public SurveyListResponseDTO getSurveys(String startDateStr, String endDateStr, String sort, int page, int pageSize, String search) {
+    public SurveyListResponseDTO getSurveys(String startDateStr, String endDateStr,
+                                            String sort, int page, int pageSize, String search, SurveyState state) {
         // 기본 정렬 기준 설정
         String defaultSort = "createdAt";  // 기본적으로 createdAt 필드로 정렬
         Sort.Direction defaultDirection = Sort.Direction.DESC;  // 기본 정렬 방향은 내림차순
@@ -127,6 +130,7 @@ public class SurveyService {
             searchValue,
             startDate,
             endDate,
+            state,
             pageable
         );
 
@@ -138,12 +142,12 @@ public class SurveyService {
                             survey.getSurveyName(),
                             survey.getCreatedAt(),
                             survey.getDeadlineAt(),
-                            survey.getState().toString()
-                        ))
+                            survey.getState().toString()))
                         .collect(Collectors.toList());
 
         return new SurveyListResponseDTO(surveyPage.getTotalElements(), page, surveyPage.getTotalPages(), surveys);
     }
+
 
     @Transactional(readOnly = true)
     public SurveyDetailResponseDTO getSurveyDetail(Long surveyId) {
