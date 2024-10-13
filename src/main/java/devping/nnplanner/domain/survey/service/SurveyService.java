@@ -165,22 +165,15 @@ public class SurveyService {
         List<String> messagesToDietitian = surveyResponseRepository.findMessagesToDietitian(surveyId);
         response.setMessagesToDietitian(messagesToDietitian.isEmpty() ? List.of() : messagesToDietitian);
 
-        // 만족도 분포 처리
-        Map<String, Integer> satisfactionDistribution = new HashMap<>();
+        // 질문별 만족도 분포 처리
+        List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> satisfactionDistributions = new ArrayList<>();
 
-        List<Object[]> monthlyDistribution = surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId);
-        monthlyDistribution.forEach(result -> satisfactionDistribution.put("monthly_" + result[0], ((Long) result[1]).intValue()));
+        satisfactionDistributions.add(createDistribution("월별 만족도 점수(1~10)", surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId)));
+        satisfactionDistributions.add(createDistribution("반찬 양 만족도 점수(1~10)", surveyResponseRepository.getPortionSatisfactionDistribution(surveyId)));
+        satisfactionDistributions.add(createDistribution("위생 만족도 점수(1~10)", surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId)));
+        satisfactionDistributions.add(createDistribution("맛 만족도 점수(1~10)", surveyResponseRepository.getTasteSatisfactionDistribution(surveyId)));
 
-        List<Object[]> portionDistribution = surveyResponseRepository.getPortionSatisfactionDistribution(surveyId);
-        portionDistribution.forEach(result -> satisfactionDistribution.put("portion_" + result[0], ((Long) result[1]).intValue()));
-
-        List<Object[]> hygieneDistribution = surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId);
-        hygieneDistribution.forEach(result -> satisfactionDistribution.put("hygiene_" + result[0], ((Long) result[1]).intValue()));
-
-        List<Object[]> tasteDistribution = surveyResponseRepository.getTasteSatisfactionDistribution(surveyId);
-        tasteDistribution.forEach(result -> satisfactionDistribution.put("taste_" + result[0], ((Long) result[1]).intValue()));
-
-        response.setSatisfactionDistribution(satisfactionDistribution);
+        response.setSatisfactionDistributions(satisfactionDistributions);
 
         // 평균 점수 계산
         Object[] avgScores = surveyResponseRepository.findAverageScores(surveyId);
@@ -197,6 +190,24 @@ public class SurveyService {
 
         return response;
     }
+
+    private SurveyDetailResponseDTO.QuestionSatisfactionDistribution createDistribution(String question, List<Object[]> distributionData) {
+        // 기본 값으로 1부터 10까지의 키와 0 값을 가진 Map 생성
+        Map<Integer, Integer> distributionMap = new HashMap<>();
+        for (int i = 1; i <= 10; i++) {
+            distributionMap.put(i, 0);  // 각 점수에 대해 기본 값 0 설정
+        }
+
+        // 쿼리에서 가져온 데이터를 기본 맵에 병합
+        for (Object[] result : distributionData) {
+            Integer score = (Integer) result[0];
+            Long count = (Long) result[1];
+            distributionMap.put(score, count.intValue());
+        }
+
+        return new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(question, distributionMap);
+    }
+
 
     @Transactional
     public SurveyResponseResponseDTO submitSurveyResponse(Long surveyId, SurveyResponseRequestDTO surveyResponseRequestDTO) {
