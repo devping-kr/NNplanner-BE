@@ -4,6 +4,7 @@ import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.*;
+import devping.nnplanner.domain.survey.entity.SurveyState;
 import devping.nnplanner.domain.survey.service.SurveyService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
@@ -35,9 +36,11 @@ public class SurveyController {
         @RequestParam(value = "sort", required = false) String sort,
         @RequestParam(value = "page", defaultValue = "1") int page,
         @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
-        @RequestParam(value = "search", required = false) String search
+        @RequestParam(value = "search", required = false) String search,
+        @RequestParam(value = "state", required = false) SurveyState state
     ) {
-        SurveyListResponseDTO responseDTO = surveyService.getSurveys(startDateStr, endDateStr, sort, page, pageSize, search);
+        SurveyListResponseDTO responseDTO
+            = surveyService.getSurveys(startDateStr, endDateStr, sort, page, pageSize, search, state);
 
         return GlobalResponse.OK("설문 목록 조회 성공", responseDTO);
     }
