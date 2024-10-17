@@ -33,12 +33,12 @@ public class OpenApiController {
     }
 
 
-    @GetMapping("/schoolinfo")
+    @GetMapping("/school-info")
     public ResponseEntity<ApiResponse<Void>> getSchoolInfo() {
 
         schoolInfoService.getAllSchoolInfo();
 
-        return GlobalResponse.OK("학교 정보 api 호출 성공", null);
+        return GlobalResponse.OK("학교 정보 api 호출 성공, 작업이 백그라운드에서 실행됩니다.", null);
     }
 
     @GetMapping("/hospital")
