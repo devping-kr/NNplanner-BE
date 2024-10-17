@@ -164,9 +164,11 @@ public class MonthMenuService {
                 if (menuSaveDTO.getHospitalMenuId() == null) {
 
                     MonthMenuHospital monthMenuHospital =
-                        monthMenuHospitalRepository.findByMenuDate(menuSaveDTO.getMenuDate())
-                                                   .orElseThrow(() ->
-                                                       new CustomException(ErrorCode.NOT_FOUND));
+                        monthMenuHospitalRepository
+                            .findByMonthMenu_MonthMenuIdAndMenuDate(monthMenuId,
+                                menuSaveDTO.getMenuDate())
+                            .orElseThrow(() ->
+                                new CustomException(ErrorCode.NOT_FOUND));
 
                     monthMenuHospitalRepository.delete(monthMenuHospital);
 
@@ -278,7 +280,6 @@ public class MonthMenuService {
     }
 
     private List<MonthFoodListResponseDTO> createMonthFoodListResponseDTOS(
-
         List<MonthMenuHospital> monthMenuHospitalList) {
 
         return monthMenuHospitalList.stream().map(MHMenu -> {
