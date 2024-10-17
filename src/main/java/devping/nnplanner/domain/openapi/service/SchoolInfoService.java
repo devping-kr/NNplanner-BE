@@ -5,17 +5,15 @@ import devping.nnplanner.domain.openapi.dto.response.SchoolInfoResponseDTO.Schoo
 import devping.nnplanner.domain.openapi.entity.SchoolInfo;
 import devping.nnplanner.domain.openapi.repository.SchoolInfoRepository;
 import java.util.List;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+@Slf4j
 @Service
-@RequiredArgsConstructor
 public class SchoolInfoService {
 
     private final SchoolInfoRepository schoolInfoRepository;
@@ -23,12 +21,10 @@ public class SchoolInfoService {
 
     private Integer pageNo = 1;
     private final Integer numOfRows = 100;
-    private int totalPages = Integer.MAX_VALUE;
 
     @Value("${api.school.key}")
     private String schoolApiKey;
 
-    @Autowired
     public SchoolInfoService(
         WebClient schoolWebClient,
         SchoolInfoRepository schoolInfoRepository) {
@@ -37,10 +33,13 @@ public class SchoolInfoService {
         this.schoolInfoRepository = schoolInfoRepository;
     }
 
+    @Async
+    @Transactional
     public void getAllSchoolInfo() {
 
-        while (pageNo <= totalPages) {
+        log.info("start");
 
+        while (true) {
             SchoolInfoResponseDTO response =
                 webClient.get()
                          .uri(uriBuilder -> uriBuilder
@@ -50,23 +49,19 @@ public class SchoolInfoService {
                              .queryParam("pIndex", pageNo)
                              .queryParam("pSize", numOfRows)
                              .build())
-                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                          .retrieve()
                          .bodyToMono(SchoolInfoResponseDTO.class)
                          .block();
 
-            if (response != null && response.getSchoolData() != null) {
+            if (response.getSchoolInfo() != null && !response.getSchoolInfo().isEmpty()) {
 
-                List<SchoolRow> schoolRows =
-                    response.getSchoolData().stream()
-                            .flatMap(schoolData -> schoolData.getRow().stream())
-                            .collect(Collectors.toList());
-
-                saveSchoolInfo(schoolRows);
+                saveSchoolInfo(response.getSchoolInfo().get(1).getRow());
 
                 pageNo++;
 
             } else {
+                pageNo = 1;
+                log.info("end");
                 break;
             }
         }
