@@ -53,7 +53,7 @@ public class SchoolInfoService {
                          .bodyToMono(SchoolInfoResponseDTO.class)
                          .block();
 
-            if (response.getSchoolInfo() != null && !response.getSchoolInfo().isEmpty()) {
+            if (response != null && !response.getSchoolInfo().isEmpty()) {
 
                 saveSchoolInfo(response.getSchoolInfo().get(1).getRow());
 
