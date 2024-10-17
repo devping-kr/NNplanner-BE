@@ -169,6 +169,7 @@ public class SurveyService {
             Map<Integer, Integer> distribution;
             String questionText = question.getQuestion();
             Long questionId = question.getId();
+            String answerType = question.getAnswerType();
 
             distribution = switch (questionText) {
                 case "월별 만족도 점수(1~10)" ->
@@ -184,9 +185,10 @@ public class SurveyService {
 
             satisfactionDistributions.add(
                 new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
-                    questionId, // Question ID 추가
+                    questionId,
                     questionText,
-                    distribution
+                    distribution,
+                    answerType
                 )
             );
         }
@@ -194,19 +196,24 @@ public class SurveyService {
         response.setSatisfactionDistributions(satisfactionDistributions);
 
         // 평균 점수 설정
-        Object[] avgScores = surveyResponseRepository.findAverageScores(surveyId);
+        List<Double> avgScores = surveyResponseRepository.findAverageScores(surveyId);
         SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
 
-        if (avgScores != null && avgScores.length == 1) {
-            Object[] avgScoreValues = (Object[]) avgScores[0];
-            averageScores.setTotalSatisfaction(avgScoreValues[0] != null ? ((Number) avgScoreValues[0]).doubleValue() : 0.0);
-            averageScores.setPortionSatisfaction(avgScoreValues[1] != null ? ((Number) avgScoreValues[1]).doubleValue() : 0.0);
-            averageScores.setHygieneSatisfaction(avgScoreValues[2] != null ? ((Number) avgScoreValues[2]).doubleValue() : 0.0);
-            averageScores.setTasteSatisfaction(avgScoreValues[3] != null ? ((Number) avgScoreValues[3]).doubleValue() : 0.0);
+        // 평균 점수 리스트의 크기를 체크
+        if (avgScores.size() == 4) {
+            averageScores.setTotalSatisfaction(avgScores.get(0) != null ? avgScores.get(0) : 0.0);
+            averageScores.setPortionSatisfaction(avgScores.get(1) != null ? avgScores.get(1) : 0.0);
+            averageScores.setHygieneSatisfaction(avgScores.get(2) != null ? avgScores.get(2) : 0.0);
+            averageScores.setTasteSatisfaction(avgScores.get(3) != null ? avgScores.get(3) : 0.0);
+        } else {
+            // 리스트의 길이가 4가 아닐 경우 기본값 설정
+            averageScores.setTotalSatisfaction(0.0);
+            averageScores.setPortionSatisfaction(0.0);
+            averageScores.setHygieneSatisfaction(0.0);
+            averageScores.setTasteSatisfaction(0.0);
         }
 
         response.setAverageScores(averageScores);
-
 
         return response;
     }

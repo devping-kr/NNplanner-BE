@@ -34,11 +34,13 @@ public class SurveyDetailResponseDTO {
         private Long questionId;
         private String question;
         private Map<Integer, Integer> distribution;
+        private String answerType;
 
-        public QuestionSatisfactionDistribution(Long questionId, String question, Map<Integer, Integer> distribution) {
+        public QuestionSatisfactionDistribution(Long questionId, String question, Map<Integer, Integer> distribution, String answerType) {
             this.questionId = questionId;
             this.question = question;
             this.distribution = distribution;
+            this.answerType = answerType;
         }
     }
 }

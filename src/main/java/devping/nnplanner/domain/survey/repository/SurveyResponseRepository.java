@@ -42,5 +42,5 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
 
     // 평균 점수 조회
     @Query("SELECT AVG(sr.monthlySatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
-    Object[] findAverageScores(Long surveyId);
+    List<Double> findAverageScores(Long surveyId);
 }
