@@ -58,16 +58,23 @@ public class SurveyService {
             throw new CustomException(ErrorCode.INVALID_SURVEY_DEADLINE);
         }
 
-        // 필수 질문 및 추가 질문 처리
-        List<Question> allQuestions = new ArrayList<>(getMandatoryQuestions());
+        // 설문 객체 생성
+        Survey survey = new Survey(monthMenu, requestDTO.getSurveyName(), deadline, new ArrayList<>());
+
+        // 기본 질문 추가
+        getMandatoryQuestions().forEach(q -> {
+            Question question = new Question(q.getQuestion(), q.getAnswerType(), true, survey);
+            survey.addQuestion(question);
+        });
+
+        // 추가 질문 처리
         if (requestDTO.getAdditionalQuestions() != null) {
             requestDTO.getAdditionalQuestions().forEach(q ->
-                allQuestions.add(new Question(q.getQuestion(), q.getAnswerType()))
+                survey.addQuestion(new Question(q.getQuestion(), q.getAnswerType(), false, survey))
             );
         }
 
-        // 설문 생성
-        Survey survey = new Survey(monthMenu, requestDTO.getSurveyName(), deadline, allQuestions);
+        // 설문 저장
         Survey savedSurvey = surveyRepository.save(survey);
 
         // 응답 DTO 생성
@@ -262,14 +269,14 @@ public class SurveyService {
     // 필수 질문을 반환하는 메서드
     private List<Question> getMandatoryQuestions() {
         return List.of(
-            new Question("월별 만족도 점수(1~10)", "radio"),
-            new Question("반찬 양 만족도 점수(1~10)", "radio"),
-            new Question("위생 만족도 점수(1~10)", "radio"),
-            new Question("맛 만족도 점수(1~10)", "radio"),
-            new Question("가장 좋아하는 상위 3개 식단", "text"),
-            new Question("가장 싫어하는 상위 3개 식단", "text"),
-            new Question("먹고 싶은 메뉴", "text"),
-            new Question("영양사에게 한마디", "text")
+            new Question("월별 만족도 점수(1~10)", "radio", true, null),
+            new Question("반찬 양 만족도 점수(1~10)", "radio", true, null),
+            new Question("위생 만족도 점수(1~10)", "radio", true, null),
+            new Question("맛 만족도 점수(1~10)", "radio", true, null),
+            new Question("가장 좋아하는 상위 3개 식단", "text", true, null),
+            new Question("가장 싫어하는 상위 3개 식단", "text", true, null),
+            new Question("먹고 싶은 메뉴", "text", true, null),
+            new Question("영양사에게 한마디", "text", true, null)
         );
     }
 
@@ -295,16 +302,15 @@ public class SurveyService {
             survey.setState(requestDTO.getState());
         }
 
-        // 추가 질문 수정
+        // 추가 질문 수정 (기본 질문은 수정하지 않음)
         if (requestDTO.getQuestions() != null && !requestDTO.getQuestions().isEmpty()) {
             for (QuestionUpdateRequestDTO questionUpdateRequest : requestDTO.getQuestions()) {
                 Question question = survey.getQuestions().stream()
-                                          .filter(q -> q.getId().equals(questionUpdateRequest.getQuestionId()))
+                                          .filter(q -> q.getId().equals(questionUpdateRequest.getQuestionId()) && !q.isMandatory())
                                           .findFirst()
                                           .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
                 question.setQuestion(questionUpdateRequest.getQuestion());
-
                 updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
             }
         }
