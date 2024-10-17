@@ -155,7 +155,6 @@ public class SurveyService {
         return new SurveyListResponseDTO(surveyPage.getTotalElements(), page, surveyPage.getTotalPages(), surveys);
     }
 
-
     @Transactional(readOnly = true)
     public SurveyDetailResponseDTO getSurveyDetail(Long surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
@@ -164,59 +163,58 @@ public class SurveyService {
         SurveyDetailResponseDTO response = new SurveyDetailResponseDTO();
         response.setSurveyName(survey.getSurveyName());
 
-        List<MenuSelectionResponseDTO> likedMenus = surveyResponseRepository.findTopLikedMenus(surveyId);
-        response.setLikedMenusTop3(likedMenus.isEmpty() ? List.of() : likedMenus);
-
-        List<MenuSelectionResponseDTO> dislikedMenus = surveyResponseRepository.findTopDislikedMenus(surveyId);
-        response.setDislikedMenusTop3(dislikedMenus.isEmpty() ? List.of() : dislikedMenus);
-
-        List<String> desiredMenus = surveyResponseRepository.findDesiredMenus(surveyId);
-        response.setDesiredMenus(desiredMenus.isEmpty() ? List.of() : desiredMenus);
-
-        List<String> messagesToDietitian = surveyResponseRepository.findMessagesToDietitian(surveyId);
-        response.setMessagesToDietitian(messagesToDietitian.isEmpty() ? List.of() : messagesToDietitian);
-
-        // 질문별 만족도 분포 처리
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> satisfactionDistributions = new ArrayList<>();
 
-        satisfactionDistributions.add(createDistribution("월별 만족도 점수(1~10)", surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId)));
-        satisfactionDistributions.add(createDistribution("반찬 양 만족도 점수(1~10)", surveyResponseRepository.getPortionSatisfactionDistribution(surveyId)));
-        satisfactionDistributions.add(createDistribution("위생 만족도 점수(1~10)", surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId)));
-        satisfactionDistributions.add(createDistribution("맛 만족도 점수(1~10)", surveyResponseRepository.getTasteSatisfactionDistribution(surveyId)));
+        // 각 질문별 분포 생성
+        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+            null, "월별 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId))
+        ));
+        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+            null, "반찬 양 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getPortionSatisfactionDistribution(surveyId))
+        ));
+        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+            null, "위생 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId))
+        ));
+        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+            null, "맛 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getTasteSatisfactionDistribution(surveyId))
+        ));
 
         response.setSatisfactionDistributions(satisfactionDistributions);
 
-        // 평균 점수 계산
         Object[] avgScores = surveyResponseRepository.findAverageScores(surveyId);
+        SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
+
         if (avgScores != null && avgScores.length == 4) {
-            SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
-            averageScores.setTotalSatisfaction(avgScores[0] != null ? ((Number) avgScores[0]).doubleValue() : 0.0);
-            averageScores.setPortionSatisfaction(avgScores[1] != null ? ((Number) avgScores[1]).doubleValue() : 0.0);
-            averageScores.setHygieneSatisfaction(avgScores[2] != null ? ((Number) avgScores[2]).doubleValue() : 0.0);
-            averageScores.setTasteSatisfaction(avgScores[3] != null ? ((Number) avgScores[3]).doubleValue() : 0.0);
-            response.setAverageScores(averageScores);
+            averageScores.setTotalSatisfaction(avgScores[0] instanceof Number ? ((Number) avgScores[0]).doubleValue() : 0.0);
+            averageScores.setPortionSatisfaction(avgScores[1] instanceof Number ? ((Number) avgScores[1]).doubleValue() : 0.0);
+            averageScores.setHygieneSatisfaction(avgScores[2] instanceof Number ? ((Number) avgScores[2]).doubleValue() : 0.0);
+            averageScores.setTasteSatisfaction(avgScores[3] instanceof Number ? ((Number) avgScores[3]).doubleValue() : 0.0);
         } else {
-            response.setAverageScores(new SurveyDetailResponseDTO.AverageScores());
+            // 평균 점수가 없을 경우 기본값 0.0 설정
+            averageScores.setTotalSatisfaction(0.0);
+            averageScores.setPortionSatisfaction(0.0);
+            averageScores.setHygieneSatisfaction(0.0);
+            averageScores.setTasteSatisfaction(0.0);
         }
+
+        response.setAverageScores(averageScores);
+
 
         return response;
     }
 
-    private SurveyDetailResponseDTO.QuestionSatisfactionDistribution createDistribution(String question, List<Object[]> distributionData) {
-        // 기본 값으로 1부터 10까지의 키와 0 값을 가진 Map 생성
+
+    private Map<Integer, Integer> createDistribution(List<Object[]> distributionData) {
         Map<Integer, Integer> distributionMap = new HashMap<>();
         for (int i = 1; i <= 10; i++) {
-            distributionMap.put(i, 0);  // 각 점수에 대해 기본 값 0 설정
+            distributionMap.put(i, 0);
         }
-
-        // 쿼리에서 가져온 데이터를 기본 맵에 병합
         for (Object[] result : distributionData) {
             Integer score = (Integer) result[0];
             Long count = (Long) result[1];
             distributionMap.put(score, count.intValue());
         }
-
-        return new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(question, distributionMap);
+        return distributionMap;
     }
 
 

@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
-import java.util.Map;
 
 public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, Long> {
 
@@ -28,19 +27,16 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     @Query("SELECT sr.messagesToDietitian FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
     List<String> findMessagesToDietitian(Long surveyId);
 
-    // monthlySatisfaction 분포 조회
+    // 만족도 분포 조회 메서드들 추가 (이미 존재하는 경우 생략 가능)
     @Query("SELECT sr.monthlySatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.monthlySatisfaction")
     List<Object[]> getMonthlySatisfactionDistribution(Long surveyId);
 
-    // portionSatisfaction 분포 조회
     @Query("SELECT sr.portionSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.portionSatisfaction")
     List<Object[]> getPortionSatisfactionDistribution(Long surveyId);
 
-    // hygieneSatisfaction 분포 조회
     @Query("SELECT sr.hygieneSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.hygieneSatisfaction")
     List<Object[]> getHygieneSatisfactionDistribution(Long surveyId);
 
-    // tasteSatisfaction 분포 조회
     @Query("SELECT sr.tasteSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.tasteSatisfaction")
     List<Object[]> getTasteSatisfactionDistribution(Long surveyId);
 
