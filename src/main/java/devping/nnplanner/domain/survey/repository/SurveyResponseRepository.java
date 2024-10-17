@@ -46,4 +46,6 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     List<Double> findAverageScores(Long surveyId);
 
     SurveyResponse findTopBySurveyOrderByResponseDateDesc(Survey survey);
+
+    List<SurveyResponse> findBySurvey(Survey survey);
 }

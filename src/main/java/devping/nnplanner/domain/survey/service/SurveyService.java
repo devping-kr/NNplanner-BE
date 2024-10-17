@@ -25,10 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -168,6 +165,10 @@ public class SurveyService {
         SurveyDetailResponseDTO response = new SurveyDetailResponseDTO();
         response.setSurveyName(survey.getSurveyName());
 
+        // 응답 목록을 조회
+        List<SurveyResponse> responses = surveyResponseRepository.findBySurvey(survey);
+
+        // 질문 별 만족도 분포 생성
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> satisfactionDistributions = new ArrayList<>();
 
         for (Question question : survey.getQuestions()) {
@@ -176,6 +177,7 @@ public class SurveyService {
             Long questionId = question.getId();
             String answerType = question.getAnswerType();
 
+            // 만족도 분포 생성
             distribution = switch (questionText) {
                 case "월별 만족도 점수(1~10)" ->
                     createDistribution(surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId));
@@ -219,6 +221,37 @@ public class SurveyService {
         }
 
         response.setAverageScores(averageScores);
+
+        // 상위 3개 메뉴 추출
+        response.setLikedMenusTop3(responses.stream()
+                                            .flatMap(r -> Arrays.stream(r.getLikedMenus().split(",")))
+                                            .filter(menu -> !menu.trim().isEmpty()) // 빈 문자열 제거
+                                            .collect(Collectors.groupingBy(menu -> menu, Collectors.counting())) // 메뉴 별 카운트
+                                            .entrySet().stream()
+                                            .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue())) // 카운트 내림차순 정렬
+                                            .limit(3) // 상위 3개
+                                            .map(e -> new MenuSelectionResponseDTO(LocalDateTime.now(), e.getKey())) // MenuSelectionResponseDTO로 변환
+                                            .collect(Collectors.toList()));
+
+        response.setDislikedMenusTop3(responses.stream()
+                                               .flatMap(r -> Arrays.stream(r.getDislikedMenus().split(",")))
+                                               .filter(menu -> !menu.trim().isEmpty()) // 빈 문자열 제거
+                                               .collect(Collectors.groupingBy(menu -> menu, Collectors.counting())) // 메뉴 별 카운트
+                                               .entrySet().stream()
+                                               .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue())) // 카운트 내림차순 정렬
+                                               .limit(3) // 상위 3개
+                                               .map(e -> new MenuSelectionResponseDTO(LocalDateTime.now(), e.getKey())) // MenuSelectionResponseDTO로 변환
+                                               .collect(Collectors.toList()));
+
+        response.setDesiredMenus(responses.stream()
+                                          .flatMap(r -> r.getDesiredMenus().stream())
+                                          .collect(Collectors.toList()));
+
+        response.setMessagesToDietitian(responses.stream()
+                                                 .map(SurveyResponse::getMessagesToDietitian)
+                                                 .filter(Objects::nonNull) // null 값 제거
+                                                 .distinct() // 중복 제거
+                                                 .collect(Collectors.toList()));
 
         return response;
     }
@@ -281,6 +314,9 @@ public class SurveyService {
 
             // surveyResponse 객체 저장
             surveyResponseRepository.save(surveyResponse);
+
+            // 로그 추가
+            System.out.println("Saved response: " + surveyResponse);
         }
 
         // 가장 최근에 저장된 응답을 반환
