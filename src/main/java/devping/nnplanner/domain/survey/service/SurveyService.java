@@ -197,14 +197,14 @@ public class SurveyService {
                 switch (questionText) {
                     case "가장 좋아하는 상위 3개 식단" -> {
                         textResponses = responses.stream()
-                                                 .flatMap(r -> Arrays.stream(r.getLikedMenus().split(",")))
+                                                 .flatMap(r -> r.getLikedMenus().stream())
                                                  .filter(menu -> !menu.trim().isEmpty())
                                                  .distinct()
                                                  .collect(Collectors.toList());
                     }
                     case "가장 싫어하는 상위 3개 식단" -> {
                         textResponses = responses.stream()
-                                                 .flatMap(r -> Arrays.stream(r.getDislikedMenus().split(",")))
+                                                 .flatMap(r -> r.getDislikedMenus().stream())
                                                  .filter(menu -> !menu.trim().isEmpty())
                                                  .distinct()
                                                  .collect(Collectors.toList());
@@ -284,50 +284,48 @@ public class SurveyService {
         Survey survey = surveyRepository.findById(surveyId)
                                         .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-        // 응답을 처리하기 위한 반복문
         for (SurveyResponseRequestDTO.ResponseDTO response : surveyResponseRequestDTO.getResponses()) {
             Question question = questionRepository.findById(response.getQuestionId())
-                                                  .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND)); // 질문 객체 조회
+                                                  .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
-            // likedMenusTop3와 dislikedMenusTop3를 문자열로 변환
-            String likedMenus = response.getLikedMenusTop3() != null ?
-                response.getLikedMenusTop3().stream()
-                        .map(MenuSelectionResponseDTO::getMenu)
-                        .collect(Collectors.joining(",")) : "";
+            SurveyResponse surveyResponse = new SurveyResponse();
+            surveyResponse.setSurvey(survey);
+            surveyResponse.setQuestion(question);
+            surveyResponse.setResponseDate(LocalDateTime.now());
 
-            String dislikedMenus = response.getDislikedMenusTop3() != null ?
-                response.getDislikedMenusTop3().stream()
-                        .map(MenuSelectionResponseDTO::getMenu)
-                        .collect(Collectors.joining(",")) : "";
+            if ("radio".equalsIgnoreCase(question.getAnswerType()) && response.getSatisfactionScore() != null) {
+                surveyResponse.setSatisfactionScore(response.getSatisfactionScore());
+            } else if ("text".equalsIgnoreCase(question.getAnswerType()) && response.getTextAnswer() != null) {
+                surveyResponse.setMessagesToDietitian(response.getTextAnswer());
+            }
 
-            // desiredMenu를 List<String>으로 변환
-            List<String> desiredMenus = response.getDesiredMenu() != null ?
-                List.of(response.getDesiredMenu()) :
-                List.of();
+            if (response.getLikedMenusTop3() != null) {
+                // 메뉴 리스트를 콤마로 조인하지 않고 바로 리스트로 설정
+                List<String> likedMenus = response.getLikedMenusTop3().stream()
+                                                  .flatMap(menuSelectionResponseDTO -> menuSelectionResponseDTO.getMenus().stream())
+                                                  .collect(Collectors.toList());
+                surveyResponse.setLikedMenus(likedMenus);
+            }
 
-            // SurveyResponse 객체 생성
-            SurveyResponse surveyResponse = new SurveyResponse(
-                survey,
-                question,
-                likedMenus,
-                dislikedMenus,
-                desiredMenus,
-                response.getMessageToDietitian(),
-                response.getMonthlySatisfaction(),
-                response.getPortionSatisfaction(),
-                response.getHygieneSatisfaction(),
-                response.getTasteSatisfaction(),
-                LocalDateTime.now()
-            );
+            if (response.getDislikedMenusTop3() != null) {
+                // 메뉴 리스트를 콤마로 조인하지 않고 바로 리스트로 설정
+                List<String> dislikedMenus = response.getDislikedMenusTop3().stream()
+                                                     .flatMap(menuSelectionResponseDTO -> menuSelectionResponseDTO.getMenus().stream())
+                                                     .collect(Collectors.toList());
+                surveyResponse.setDislikedMenus(dislikedMenus);
+            }
 
-            // surveyResponse 객체 저장
+            if (response.getDesiredMenus() != null) {
+                surveyResponse.setDesiredMenus(response.getDesiredMenus());
+            }
+
+            if (response.getMessageToDietitian() != null) {
+                surveyResponse.setMessagesToDietitian(response.getMessageToDietitian());
+            }
+
             surveyResponseRepository.save(surveyResponse);
-
-            // 로그 추가
-            System.out.println("Saved response: " + surveyResponse);
         }
 
-        // 가장 최근에 저장된 응답을 반환
         SurveyResponse lastResponse = surveyResponseRepository.findTopBySurveyOrderByResponseDateDesc(survey);
         return new SurveyResponseResponseDTO(lastResponse.getId(), survey.getId(), lastResponse.getResponseDate());
     }

@@ -1,84 +1,72 @@
 package devping.nnplanner.domain.survey.entity;
 
-import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@NoArgsConstructor
 @Entity
-public class SurveyResponse extends BaseTimeEntity {
+@Getter
+@Setter
+public class SurveyResponse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "survey_id", nullable = false)
+    @JoinColumn(name = "survey_id")
     private Survey survey;
 
-    @Getter
-    @Setter
     @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
+    @JoinColumn(name = "question_id")
     private Question question;
-
-    private String likedMenus;
-    private String dislikedMenus;
-
-    @ElementCollection
-    private List<String> desiredMenus;
-
-    @Column(name = "messages_to_dietitian")
-    private String messagesToDietitian;
-
-    private int monthlySatisfaction;
-    private int portionSatisfaction;
-    private int hygieneSatisfaction;
-    private int tasteSatisfaction;
-
-    @Column(name = "total_satisfaction", nullable = false)
-    private int totalSatisfaction;
-
-    @Column(name = "satisfaction_score", nullable = false)
-    private int satisfactionScore;
 
     private LocalDateTime responseDate;
 
-    // 생성자 수정
-    public SurveyResponse(Survey survey, Question question, String likedMenus, String dislikedMenus,
-                          List<String> desiredMenus, String messagesToDietitian,
-                          int monthlySatisfaction, int portionSatisfaction,
-                          int hygieneSatisfaction, int tasteSatisfaction,
+    private Integer satisfactionScore; // 만족도 점수 (1~10)
+
+    @ElementCollection
+    @CollectionTable(name = "liked_menus", joinColumns = @JoinColumn(name = "survey_response_id"))
+    @Column(name = "menu")
+    private List<String> likedMenus;
+
+    @ElementCollection
+    @CollectionTable(name = "disliked_menus", joinColumns = @JoinColumn(name = "survey_response_id"))
+    @Column(name = "menu")
+    private List<String> dislikedMenus;
+
+    @ElementCollection
+    @CollectionTable(name = "survey_response_desired_menus", joinColumns = @JoinColumn(name = "survey_response_id"))
+    @Column(name = "desired_menus")
+    private List<String> desiredMenus; // 먹고 싶은 메뉴 리스트
+
+    @Column(length = 1000)
+    private String messagesToDietitian; // 영양사에게 남기는 메시지
+
+    private int monthlySatisfaction = 0;
+    private int portionSatisfaction= 0;
+    private int hygieneSatisfaction = 0;
+    private int tasteSatisfaction = 0;
+
+
+    // 기본 생성자
+    public SurveyResponse() {
+    }
+
+    public SurveyResponse(Survey survey, Question question, List<String> likedMenus, List<String> dislikedMenus,
+                          List<String> desiredMenus, String messagesToDietitian, Integer satisfactionScore,
                           LocalDateTime responseDate) {
-        this.survey = survey;  // Survey 객체 초기화
-        this.question = question; // Question 객체 초기화
-        this.likedMenus = likedMenus;
-        this.dislikedMenus = dislikedMenus;
+        this.survey = survey;
+        this.question = question;
+        this.likedMenus = likedMenus; // 리스트 타입이므로 리스트를 직접 할당
+        this.dislikedMenus = dislikedMenus; // 리스트 타입이므로 리스트를 직접 할당
         this.desiredMenus = desiredMenus;
         this.messagesToDietitian = messagesToDietitian;
-        this.monthlySatisfaction = monthlySatisfaction;
-        this.portionSatisfaction = portionSatisfaction;
-        this.hygieneSatisfaction = hygieneSatisfaction;
-        this.tasteSatisfaction = tasteSatisfaction;
-        this.totalSatisfaction = calculateTotalSatisfaction();
-        this.satisfactionScore = calculateSatisfactionScore();
+        this.satisfactionScore = satisfactionScore;
         this.responseDate = responseDate;
     }
 
-    // 총 만족도를 계산하는 메서드
-    public int calculateTotalSatisfaction() {
-        return (monthlySatisfaction + portionSatisfaction + hygieneSatisfaction + tasteSatisfaction) / 4;
-    }
-
-    // satisfactionScore 계산 메서드
-    public int calculateSatisfactionScore() {
-        // 여기서 원하는 로직으로 satisfactionScore를 계산
-        return (monthlySatisfaction + portionSatisfaction + hygieneSatisfaction + tasteSatisfaction) / 4;
-    }
 }
