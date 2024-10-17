@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.survey.repository;
 
+import devping.nnplanner.domain.survey.entity.Question;
 import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.entity.SurveyResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, Long> {
 
@@ -49,4 +51,6 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     SurveyResponse findTopBySurveyOrderByResponseDateDesc(Survey survey);
 
     List<SurveyResponse> findBySurvey(Survey survey);
+
+    List<SurveyResponse> findBySurveyAndQuestion(Survey survey, Question question);
 }

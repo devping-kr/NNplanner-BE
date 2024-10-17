@@ -16,6 +16,8 @@ import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.domain.survey.repository.SurveyResponseRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class SurveyService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SurveyService.class);
 
     private final SurveyRepository surveyRepository;
     private final SurveyResponseRepository surveyResponseRepository;
@@ -288,44 +292,42 @@ public class SurveyService {
             Question question = questionRepository.findById(response.getQuestionId())
                                                   .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
+            // 항상 새로운 SurveyResponse 생성
             SurveyResponse surveyResponse = new SurveyResponse();
             surveyResponse.setSurvey(survey);
             surveyResponse.setQuestion(question);
             surveyResponse.setResponseDate(LocalDateTime.now());
+            logger.info("Creating new response for questionId: {} and surveyId: {}", response.getQuestionId(), surveyId);
 
+            // 응답 데이터 설정
             if ("radio".equalsIgnoreCase(question.getAnswerType()) && response.getSatisfactionScore() != null) {
                 surveyResponse.setSatisfactionScore(response.getSatisfactionScore());
-            } else if ("text".equalsIgnoreCase(question.getAnswerType()) && response.getTextAnswer() != null) {
-                surveyResponse.setMessagesToDietitian(response.getTextAnswer());
             }
-
             if (response.getLikedMenusTop3() != null) {
-                // 메뉴 리스트를 콤마로 조인하지 않고 바로 리스트로 설정
                 List<String> likedMenus = response.getLikedMenusTop3().stream()
                                                   .flatMap(menuSelectionResponseDTO -> menuSelectionResponseDTO.getMenus().stream())
                                                   .collect(Collectors.toList());
                 surveyResponse.setLikedMenus(likedMenus);
             }
-
             if (response.getDislikedMenusTop3() != null) {
-                // 메뉴 리스트를 콤마로 조인하지 않고 바로 리스트로 설정
                 List<String> dislikedMenus = response.getDislikedMenusTop3().stream()
                                                      .flatMap(menuSelectionResponseDTO -> menuSelectionResponseDTO.getMenus().stream())
                                                      .collect(Collectors.toList());
                 surveyResponse.setDislikedMenus(dislikedMenus);
             }
-
             if (response.getDesiredMenus() != null) {
                 surveyResponse.setDesiredMenus(response.getDesiredMenus());
             }
-
             if (response.getMessageToDietitian() != null) {
                 surveyResponse.setMessagesToDietitian(response.getMessageToDietitian());
             }
 
+            // 응답 저장
             surveyResponseRepository.save(surveyResponse);
+            logger.info("Saved survey response for questionId: {}", response.getQuestionId());
         }
 
+        // 마지막으로 저장된 응답을 조회하여 응답 DTO 생성
         SurveyResponse lastResponse = surveyResponseRepository.findTopBySurveyOrderByResponseDateDesc(survey);
         return new SurveyResponseResponseDTO(lastResponse.getId(), survey.getId(), lastResponse.getResponseDate());
     }
