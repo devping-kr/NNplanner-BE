@@ -165,36 +165,44 @@ public class SurveyService {
 
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> satisfactionDistributions = new ArrayList<>();
 
-        // 각 질문별 분포 생성
-        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
-            null, "월별 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId))
-        ));
-        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
-            null, "반찬 양 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getPortionSatisfactionDistribution(surveyId))
-        ));
-        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
-            null, "위생 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId))
-        ));
-        satisfactionDistributions.add(new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
-            null, "맛 만족도 점수(1~10)", createDistribution(surveyResponseRepository.getTasteSatisfactionDistribution(surveyId))
-        ));
+        for (Question question : survey.getQuestions()) {
+            Map<Integer, Integer> distribution;
+            String questionText = question.getQuestion();
+            Long questionId = question.getId();
+
+            distribution = switch (questionText) {
+                case "월별 만족도 점수(1~10)" ->
+                    createDistribution(surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId));
+                case "반찬 양 만족도 점수(1~10)" ->
+                    createDistribution(surveyResponseRepository.getPortionSatisfactionDistribution(surveyId));
+                case "위생 만족도 점수(1~10)" ->
+                    createDistribution(surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId));
+                case "맛 만족도 점수(1~10)" ->
+                    createDistribution(surveyResponseRepository.getTasteSatisfactionDistribution(surveyId));
+                default -> new HashMap<>();
+            };
+
+            satisfactionDistributions.add(
+                new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+                    questionId, // Question ID 추가
+                    questionText,
+                    distribution
+                )
+            );
+        }
 
         response.setSatisfactionDistributions(satisfactionDistributions);
 
+        // 평균 점수 설정
         Object[] avgScores = surveyResponseRepository.findAverageScores(surveyId);
         SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
 
-        if (avgScores != null && avgScores.length == 4) {
-            averageScores.setTotalSatisfaction(avgScores[0] instanceof Number ? ((Number) avgScores[0]).doubleValue() : 0.0);
-            averageScores.setPortionSatisfaction(avgScores[1] instanceof Number ? ((Number) avgScores[1]).doubleValue() : 0.0);
-            averageScores.setHygieneSatisfaction(avgScores[2] instanceof Number ? ((Number) avgScores[2]).doubleValue() : 0.0);
-            averageScores.setTasteSatisfaction(avgScores[3] instanceof Number ? ((Number) avgScores[3]).doubleValue() : 0.0);
-        } else {
-            // 평균 점수가 없을 경우 기본값 0.0 설정
-            averageScores.setTotalSatisfaction(0.0);
-            averageScores.setPortionSatisfaction(0.0);
-            averageScores.setHygieneSatisfaction(0.0);
-            averageScores.setTasteSatisfaction(0.0);
+        if (avgScores != null && avgScores.length == 1) {
+            Object[] avgScoreValues = (Object[]) avgScores[0];
+            averageScores.setTotalSatisfaction(avgScoreValues[0] != null ? ((Number) avgScoreValues[0]).doubleValue() : 0.0);
+            averageScores.setPortionSatisfaction(avgScoreValues[1] != null ? ((Number) avgScoreValues[1]).doubleValue() : 0.0);
+            averageScores.setHygieneSatisfaction(avgScoreValues[2] != null ? ((Number) avgScoreValues[2]).doubleValue() : 0.0);
+            averageScores.setTasteSatisfaction(avgScoreValues[3] != null ? ((Number) avgScoreValues[3]).doubleValue() : 0.0);
         }
 
         response.setAverageScores(averageScores);
