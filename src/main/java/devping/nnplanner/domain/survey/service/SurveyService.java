@@ -240,16 +240,18 @@ public class SurveyService {
 
         response.setSatisfactionDistributions(satisfactionDistributions);
 
-        // 평균 점수 설정
-        List<Double> avgScores = surveyResponseRepository.findAverageScores(surveyId);
+        List<Object[]> avgScoresResult = surveyResponseRepository.findAverageScores(surveyId);
         SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
 
-        if (avgScores.size() == 4) {
-            averageScores.setTotalSatisfaction(avgScores.get(0) != null ? avgScores.get(0) : 0.0);
-            averageScores.setPortionSatisfaction(avgScores.get(1) != null ? avgScores.get(1) : 0.0);
-            averageScores.setHygieneSatisfaction(avgScores.get(2) != null ? avgScores.get(2) : 0.0);
-            averageScores.setTasteSatisfaction(avgScores.get(3) != null ? avgScores.get(3) : 0.0);
+        if (avgScoresResult != null && !avgScoresResult.isEmpty()) {
+            Object[] avgScores = avgScoresResult.get(0); // 첫 번째 결과 행을 가져옴
+            averageScores.setTotalSatisfaction(avgScores[0] != null ? ((Double) avgScores[0]) : 0.0);
+            averageScores.setPortionSatisfaction(avgScores[1] != null ? ((Double) avgScores[1]) : 0.0);
+            averageScores.setHygieneSatisfaction(avgScores[2] != null ? ((Double) avgScores[2]) : 0.0);
+            averageScores.setTasteSatisfaction(avgScores[3] != null ? ((Double) avgScores[3]) : 0.0);
         } else {
+            // 평균 점수 계산 오류를 디버깅하기 위한 출력
+            System.out.println("Average scores not calculated correctly. List: " + avgScoresResult);
             averageScores.setTotalSatisfaction(0.0);
             averageScores.setPortionSatisfaction(0.0);
             averageScores.setHygieneSatisfaction(0.0);
@@ -257,6 +259,7 @@ public class SurveyService {
         }
 
         response.setAverageScores(averageScores);
+
 
         return response;
     }

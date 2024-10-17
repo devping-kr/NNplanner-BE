@@ -5,6 +5,7 @@ import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.entity.SurveyResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -41,9 +42,10 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     @Query("SELECT sr.tasteSatisfaction, COUNT(sr) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId GROUP BY sr.tasteSatisfaction")
     List<Object[]> getTasteSatisfactionDistribution(Long surveyId);
 
-    // 평균 점수 조회
-    @Query("SELECT AVG(sr.monthlySatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
-    List<Double> findAverageScores(Long surveyId);
+    @Query("SELECT AVG(sr.monthlySatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) " +
+        "FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
+    List<Object[]> findAverageScores(@Param("surveyId") Long surveyId);
+
 
     SurveyResponse findTopBySurveyOrderByResponseDateDesc(Survey survey);
 
