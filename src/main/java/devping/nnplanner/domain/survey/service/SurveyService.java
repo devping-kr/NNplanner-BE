@@ -172,32 +172,70 @@ public class SurveyService {
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> satisfactionDistributions = new ArrayList<>();
 
         for (Question question : survey.getQuestions()) {
-            Map<Integer, Integer> distribution;
-            String questionText = question.getQuestion();
             Long questionId = question.getId();
+            String questionText = question.getQuestion();
             String answerType = question.getAnswerType();
 
-            // 만족도 분포 생성
-            distribution = switch (questionText) {
-                case "월별 만족도 점수(1~10)" ->
-                    createDistribution(surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId));
-                case "반찬 양 만족도 점수(1~10)" ->
-                    createDistribution(surveyResponseRepository.getPortionSatisfactionDistribution(surveyId));
-                case "위생 만족도 점수(1~10)" ->
-                    createDistribution(surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId));
-                case "맛 만족도 점수(1~10)" ->
-                    createDistribution(surveyResponseRepository.getTasteSatisfactionDistribution(surveyId));
-                default -> new HashMap<>();
-            };
+            Map<Integer, Integer> satisfactionDistribution = null;
+            List<String> textResponses = new ArrayList<>();
 
-            satisfactionDistributions.add(
+            if ("radio".equals(answerType) && questionText.contains("만족도 점수")) {
+                // 만족도 질문 분포 생성
+                satisfactionDistribution = switch (questionText) {
+                    case "월별 만족도 점수(1~10)" ->
+                        createDistribution(surveyResponseRepository.getMonthlySatisfactionDistribution(surveyId));
+                    case "반찬 양 만족도 점수(1~10)" ->
+                        createDistribution(surveyResponseRepository.getPortionSatisfactionDistribution(surveyId));
+                    case "위생 만족도 점수(1~10)" ->
+                        createDistribution(surveyResponseRepository.getHygieneSatisfactionDistribution(surveyId));
+                    case "맛 만족도 점수(1~10)" ->
+                        createDistribution(surveyResponseRepository.getTasteSatisfactionDistribution(surveyId));
+                    default -> new HashMap<>();
+                };
+            } else if ("text".equals(answerType)) {
+                // 텍스트 응답 처리
+                switch (questionText) {
+                    case "가장 좋아하는 상위 3개 식단" -> {
+                        textResponses = responses.stream()
+                                                 .flatMap(r -> Arrays.stream(r.getLikedMenus().split(",")))
+                                                 .filter(menu -> !menu.trim().isEmpty())
+                                                 .distinct()
+                                                 .collect(Collectors.toList());
+                    }
+                    case "가장 싫어하는 상위 3개 식단" -> {
+                        textResponses = responses.stream()
+                                                 .flatMap(r -> Arrays.stream(r.getDislikedMenus().split(",")))
+                                                 .filter(menu -> !menu.trim().isEmpty())
+                                                 .distinct()
+                                                 .collect(Collectors.toList());
+                    }
+                    case "먹고 싶은 메뉴" -> {
+                        textResponses = responses.stream()
+                                                 .flatMap(r -> r.getDesiredMenus().stream())
+                                                 .distinct()
+                                                 .collect(Collectors.toList());
+                    }
+                    case "영양사에게 한마디" -> {
+                        textResponses = responses.stream()
+                                                 .map(SurveyResponse::getMessagesToDietitian)
+                                                 .filter(Objects::nonNull)
+                                                 .distinct()
+                                                 .collect(Collectors.toList());
+                    }
+                }
+            }
+
+            // 질문별로 분포를 ResponseDTO로 추가
+            SurveyDetailResponseDTO.QuestionSatisfactionDistribution questionDistribution =
                 new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
                     questionId,
                     questionText,
-                    distribution,
+                    satisfactionDistribution != null ? satisfactionDistribution : new HashMap<>(),
+                    textResponses,
                     answerType
-                )
-            );
+                );
+
+            satisfactionDistributions.add(questionDistribution);
         }
 
         response.setSatisfactionDistributions(satisfactionDistributions);
@@ -206,14 +244,12 @@ public class SurveyService {
         List<Double> avgScores = surveyResponseRepository.findAverageScores(surveyId);
         SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
 
-        // 평균 점수 리스트의 크기를 체크
         if (avgScores.size() == 4) {
             averageScores.setTotalSatisfaction(avgScores.get(0) != null ? avgScores.get(0) : 0.0);
             averageScores.setPortionSatisfaction(avgScores.get(1) != null ? avgScores.get(1) : 0.0);
             averageScores.setHygieneSatisfaction(avgScores.get(2) != null ? avgScores.get(2) : 0.0);
             averageScores.setTasteSatisfaction(avgScores.get(3) != null ? avgScores.get(3) : 0.0);
         } else {
-            // 리스트의 길이가 4가 아닐 경우 기본값 설정
             averageScores.setTotalSatisfaction(0.0);
             averageScores.setPortionSatisfaction(0.0);
             averageScores.setHygieneSatisfaction(0.0);
@@ -221,37 +257,6 @@ public class SurveyService {
         }
 
         response.setAverageScores(averageScores);
-
-        // 상위 3개 메뉴 추출
-        response.setLikedMenusTop3(responses.stream()
-                                            .flatMap(r -> Arrays.stream(r.getLikedMenus().split(",")))
-                                            .filter(menu -> !menu.trim().isEmpty()) // 빈 문자열 제거
-                                            .collect(Collectors.groupingBy(menu -> menu, Collectors.counting())) // 메뉴 별 카운트
-                                            .entrySet().stream()
-                                            .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue())) // 카운트 내림차순 정렬
-                                            .limit(3) // 상위 3개
-                                            .map(e -> new MenuSelectionResponseDTO(LocalDateTime.now(), e.getKey())) // MenuSelectionResponseDTO로 변환
-                                            .collect(Collectors.toList()));
-
-        response.setDislikedMenusTop3(responses.stream()
-                                               .flatMap(r -> Arrays.stream(r.getDislikedMenus().split(",")))
-                                               .filter(menu -> !menu.trim().isEmpty()) // 빈 문자열 제거
-                                               .collect(Collectors.groupingBy(menu -> menu, Collectors.counting())) // 메뉴 별 카운트
-                                               .entrySet().stream()
-                                               .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue())) // 카운트 내림차순 정렬
-                                               .limit(3) // 상위 3개
-                                               .map(e -> new MenuSelectionResponseDTO(LocalDateTime.now(), e.getKey())) // MenuSelectionResponseDTO로 변환
-                                               .collect(Collectors.toList()));
-
-        response.setDesiredMenus(responses.stream()
-                                          .flatMap(r -> r.getDesiredMenus().stream())
-                                          .collect(Collectors.toList()));
-
-        response.setMessagesToDietitian(responses.stream()
-                                                 .map(SurveyResponse::getMessagesToDietitian)
-                                                 .filter(Objects::nonNull) // null 값 제거
-                                                 .distinct() // 중복 제거
-                                                 .collect(Collectors.toList()));
 
         return response;
     }
