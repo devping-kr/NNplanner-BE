@@ -238,38 +238,47 @@ public class SurveyService {
         Survey survey = surveyRepository.findById(surveyId)
                                         .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-        // likedMenusTop3와 dislikedMenusTop3를 문자열로 변환
-        String likedMenus = surveyResponseRequestDTO.getLikedMenusTop3().stream()
-                                                    .map(MenuSelectionResponseDTO::getMenu)
-                                                    .collect(Collectors.joining(","));
-        String dislikedMenus = surveyResponseRequestDTO.getDislikedMenusTop3().stream()
-                                                       .map(MenuSelectionResponseDTO::getMenu)
-                                                       .collect(Collectors.joining(","));
+        // 응답을 처리하기 위한 반복문
+        for (SurveyResponseRequestDTO.ResponseDTO response : surveyResponseRequestDTO.getResponses()) {
+            // likedMenusTop3와 dislikedMenusTop3를 문자열로 변환
+            String likedMenus = response.getLikedMenusTop3() != null ?
+                response.getLikedMenusTop3().stream()
+                        .map(MenuSelectionResponseDTO::getMenu)
+                        .collect(Collectors.joining(",")) : "";
 
-        // desiredMenu를 List<String>으로 변환
-        List<String> desiredMenus = surveyResponseRequestDTO.getDesiredMenu() != null ?
-            List.of(surveyResponseRequestDTO.getDesiredMenu()) :
-            List.of();
+            String dislikedMenus = response.getDislikedMenusTop3() != null ?
+                response.getDislikedMenusTop3().stream()
+                        .map(MenuSelectionResponseDTO::getMenu)
+                        .collect(Collectors.joining(",")) : "";
 
-        // SurveyResponse 객체 생성
-        SurveyResponse surveyResponse = new SurveyResponse(
-            survey,
-            likedMenus,
-            dislikedMenus,
-            desiredMenus,
-            surveyResponseRequestDTO.getMessageToDietitian(),
-            surveyResponseRequestDTO.getMonthlySatisfaction(),
-            surveyResponseRequestDTO.getPortionSatisfaction(),
-            surveyResponseRequestDTO.getHygieneSatisfaction(),
-            surveyResponseRequestDTO.getTasteSatisfaction(),
-            LocalDateTime.now()
-        );
+            // desiredMenu를 List<String>으로 변환
+            List<String> desiredMenus = response.getDesiredMenu() != null ?
+                List.of(response.getDesiredMenu()) :
+                List.of();
 
-        // surveyResponse 객체 저장
-        surveyResponseRepository.save(surveyResponse);
+            // SurveyResponse 객체 생성
+            SurveyResponse surveyResponse = new SurveyResponse(
+                survey,
+                likedMenus,
+                dislikedMenus,
+                desiredMenus,
+                response.getMessageToDietitian(),
+                response.getMonthlySatisfaction(),
+                response.getPortionSatisfaction(),
+                response.getHygieneSatisfaction(),
+                response.getTasteSatisfaction(),
+                LocalDateTime.now()
+            );
 
-        return new SurveyResponseResponseDTO(surveyResponse.getId(), survey.getId(), surveyResponse.getResponseDate());
+            // surveyResponse 객체 저장
+            surveyResponseRepository.save(surveyResponse);
+        }
+
+        // 가장 최근에 저장된 응답을 반환
+        SurveyResponse lastResponse = surveyResponseRepository.findTopBySurveyOrderByResponseDateDesc(survey);
+        return new SurveyResponseResponseDTO(lastResponse.getId(), survey.getId(), lastResponse.getResponseDate());
     }
+
 
     public void deleteSurvey(Long surveyId) {
         Survey survey = surveyRepository.findById(surveyId)

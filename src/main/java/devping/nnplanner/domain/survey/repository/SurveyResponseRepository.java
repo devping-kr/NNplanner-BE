@@ -1,6 +1,7 @@
 package devping.nnplanner.domain.survey.repository;
 
 import devping.nnplanner.domain.survey.dto.response.MenuSelectionResponseDTO;
+import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.entity.SurveyResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -43,4 +44,6 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     // 평균 점수 조회
     @Query("SELECT AVG(sr.monthlySatisfaction), AVG(sr.portionSatisfaction), AVG(sr.hygieneSatisfaction), AVG(sr.tasteSatisfaction) FROM SurveyResponse sr WHERE sr.survey.id = :surveyId")
     List<Double> findAverageScores(Long surveyId);
+
+    SurveyResponse findTopBySurveyOrderByResponseDateDesc(Survey survey);
 }
