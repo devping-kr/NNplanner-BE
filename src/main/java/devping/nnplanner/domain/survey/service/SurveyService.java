@@ -11,6 +11,7 @@ import devping.nnplanner.domain.survey.entity.Question;
 import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.entity.SurveyResponse;
 import devping.nnplanner.domain.survey.entity.SurveyState;
+import devping.nnplanner.domain.survey.repository.QuestionRepository;
 import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.domain.survey.repository.SurveyResponseRepository;
 import devping.nnplanner.global.exception.CustomException;
@@ -37,12 +38,16 @@ public class SurveyService {
     private final SurveyRepository surveyRepository;
     private final SurveyResponseRepository surveyResponseRepository;
     private final MonthMenuRepository monthMenuRepository;
+    private final QuestionRepository questionRepository;
 
     public SurveyService(SurveyRepository surveyRepository,
-                         MonthMenuRepository monthMenuRepository, SurveyResponseRepository surveyResponseRepository) {
+                         MonthMenuRepository monthMenuRepository,
+                         SurveyResponseRepository surveyResponseRepository,
+                         QuestionRepository questionRepository) {
         this.surveyRepository = surveyRepository;
         this.surveyResponseRepository = surveyResponseRepository;
         this.monthMenuRepository = monthMenuRepository;
+        this.questionRepository = questionRepository;
     }
 
     public SurveyResponseDTO createSurvey(SurveyRequestDTO requestDTO) {
@@ -240,6 +245,9 @@ public class SurveyService {
 
         // 응답을 처리하기 위한 반복문
         for (SurveyResponseRequestDTO.ResponseDTO response : surveyResponseRequestDTO.getResponses()) {
+            Question question = questionRepository.findById(response.getQuestionId())
+                                                  .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND)); // 질문 객체 조회
+
             // likedMenusTop3와 dislikedMenusTop3를 문자열로 변환
             String likedMenus = response.getLikedMenusTop3() != null ?
                 response.getLikedMenusTop3().stream()
@@ -259,6 +267,7 @@ public class SurveyService {
             // SurveyResponse 객체 생성
             SurveyResponse surveyResponse = new SurveyResponse(
                 survey,
+                question,
                 likedMenus,
                 dislikedMenus,
                 desiredMenus,

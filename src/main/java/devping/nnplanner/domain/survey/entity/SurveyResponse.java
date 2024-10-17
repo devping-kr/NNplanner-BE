@@ -4,6 +4,7 @@ import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,8 +19,14 @@ public class SurveyResponse extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "survey_id")
+    @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
     private String likedMenus;
     private String dislikedMenus;
@@ -43,12 +50,14 @@ public class SurveyResponse extends BaseTimeEntity {
 
     private LocalDateTime responseDate;
 
-    public SurveyResponse(Survey survey, String likedMenus, String dislikedMenus,
+    // 생성자 수정
+    public SurveyResponse(Survey survey, Question question, String likedMenus, String dislikedMenus,
                           List<String> desiredMenus, String messagesToDietitian,
                           int monthlySatisfaction, int portionSatisfaction,
                           int hygieneSatisfaction, int tasteSatisfaction,
                           LocalDateTime responseDate) {
-        this.survey = survey;
+        this.survey = survey;  // Survey 객체 초기화
+        this.question = question; // Question 객체 초기화
         this.likedMenus = likedMenus;
         this.dislikedMenus = dislikedMenus;
         this.desiredMenus = desiredMenus;
