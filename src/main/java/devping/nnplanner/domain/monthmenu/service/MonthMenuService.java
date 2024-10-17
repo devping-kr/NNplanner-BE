@@ -172,7 +172,8 @@ public class MonthMenuService {
 
                     monthMenuHospitalRepository.delete(monthMenuHospital);
 
-                    if (!monthMenuHospital.getHospitalMenu().getCreatedBy().isEmpty()) {
+                    if (monthMenuHospital.getHospitalMenu().getCreatedBy() != null
+                        && !monthMenuHospital.getHospitalMenu().getCreatedBy().isEmpty()) {
                         hospitalMenuRepository.delete(monthMenuHospital.getHospitalMenu());
                     }
 
