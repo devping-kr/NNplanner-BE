@@ -377,15 +377,14 @@ public class SurveyService {
             survey.setState(requestDTO.getState());
         }
 
-        // 추가 질문 수정 (기본 질문은 수정하지 않음)
+        // 질문 수정
         if (requestDTO.getQuestions() != null && !requestDTO.getQuestions().isEmpty()) {
             for (QuestionUpdateRequestDTO questionUpdateRequest : requestDTO.getQuestions()) {
-                Question question = survey.getQuestions().stream()
-                                          .filter(q -> q.getId().equals(questionUpdateRequest.getQuestionId()) && !q.isMandatory())
-                                          .findFirst()
-                                          .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+                Question question = questionRepository.findByIdAndSurveyId(questionUpdateRequest.getQuestionId(), surveyId)
+                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
                 question.setQuestion(questionUpdateRequest.getQuestion());
+                question.setAnswerType(questionUpdateRequest.getAnswerType());
                 updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
             }
         }
