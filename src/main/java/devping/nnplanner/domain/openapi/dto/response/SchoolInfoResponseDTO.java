@@ -7,23 +7,26 @@ import lombok.Getter;
 @Getter
 public class SchoolInfoResponseDTO {
 
-    private List<SchoolData> schoolData;
+    private List<SchoolInfo> schoolInfo;
 
     @Getter
-    public class SchoolData {
+    public static class SchoolInfo {
 
         private List<Head> head;
+
         private List<SchoolRow> row;
     }
 
     @Getter
-    public class Head {
+    public static class Head {
 
-        private Integer list_total_count;
+        @JsonProperty("list_total_count")
+        private Integer listTotalCount;
     }
 
+
     @Getter
-    public class SchoolRow {
+    public static class SchoolRow {
 
         @JsonProperty("ATPT_OFCDC_SC_CODE")
         private String schoolAreaCode;
@@ -40,5 +43,4 @@ public class SchoolInfoResponseDTO {
         @JsonProperty("SCHUL_KND_SC_NM")
         private String schoolKindName;
     }
-
 }
