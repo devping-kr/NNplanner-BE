@@ -36,8 +36,7 @@ public class Survey extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SurveyState state;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "survey_id")  // Survey의 id를 참조하도록 설정
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "survey", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -49,5 +48,10 @@ public class Survey extends BaseTimeEntity {
         this.deadlineAt = deadlineAt;
         this.questions = questions;
         this.state = SurveyState.IN_PROGRESS;
+    }
+
+    public void addQuestion(Question question) {
+        questions.add(question);
+        question.setSurvey(this);
     }
 }

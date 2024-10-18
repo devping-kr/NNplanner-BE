@@ -9,4 +9,5 @@ public class QuestionUpdateRequestDTO {
 
     private Long questionId;
     private String question;
+    private String answerType;
 }

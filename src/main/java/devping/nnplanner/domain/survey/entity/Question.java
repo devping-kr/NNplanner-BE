@@ -15,11 +15,23 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String question;
+
+    @Column(nullable = false)
     private String answerType;
 
-    public Question(String question, String answerType) {
+    @Column(name = "is_mandatory")
+    private boolean isMandatory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "survey_id", nullable = false)
+    private Survey survey;
+
+    public Question(String question, String answerType, boolean isMandatory, Survey survey) {
         this.question = question;
         this.answerType = answerType;
+        this.isMandatory = isMandatory;
+        this.survey = survey;
     }
 }
