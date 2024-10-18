@@ -11,5 +11,6 @@ public interface MonthMenuHospitalRepository extends JpaRepository<MonthMenuHosp
 
     List<MonthMenuHospital> findAllByMonthMenu_MonthMenuId(UUID monthMenuId);
 
-    Optional<MonthMenuHospital> findByMenuDate(LocalDate menuDate);
+    Optional<MonthMenuHospital> findByMonthMenu_MonthMenuIdAndMenuDate(UUID monthMenuId,
+                                                                       LocalDate menuDate);
 }

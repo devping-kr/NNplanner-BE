@@ -157,6 +157,8 @@ public class MonthMenuService {
 
         monthMenu.update(menuCategory, monthMenu.getMonthMenuName());
 
+        monthMenuRepository.save(monthMenu);
+
         if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
 
             requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
