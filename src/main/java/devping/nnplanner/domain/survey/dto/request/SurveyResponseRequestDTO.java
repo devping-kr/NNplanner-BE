@@ -1,42 +1,42 @@
 package devping.nnplanner.domain.survey.dto.request;
 
-import devping.nnplanner.domain.survey.dto.response.MenuSelectionResponseDTO;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
 public class SurveyResponseRequestDTO {
 
-    @Min(1)
-    @Max(10)
-    @NotNull
-    private Integer monthlySatisfaction;
+    private List<SatisfactionScoreDTO> satisfactionScore;
+    private List<MenuSelectionDTO> likedMenusTop3;
+    private List<MenuSelectionDTO> dislikedMenusTop3;
+    private List<MenuSelectionDTO> desiredMenus;
+    private List<MessageToDietitianDTO> messageToDietitian;
 
-    @Min(1)
-    @Max(10)
-    @NotNull
-    private Integer portionSatisfaction;
+    @Getter
+    @Setter
+    public static class SatisfactionScoreDTO {
+        private Long questionId; // 만족도 질문 ID
+        private LocalDateTime responseDate;
+        private Integer score; // 만족도 점수 (1~10)
+    }
 
-    @Min(1)
-    @Max(10)
-    @NotNull
-    private Integer hygieneSatisfaction;
+    @Getter
+    @Setter
+    public static class MenuSelectionDTO {
+        private Long questionId; // 메뉴 질문 ID
+        private LocalDateTime responseDate; // 응답 날짜
+        private List<String> menus;  // 메뉴 리스트
+    }
 
-    @Min(1)
-    @Max(10)
-    @NotNull
-    private Integer tasteSatisfaction;
-
-    private String desiredMenu;       // 먹고 싶은 메뉴 (선택 사항)
-    private String messageToDietitian; // 영양사에게 남기는 메시지 (선택 사항)
-    private List<MenuSelectionResponseDTO> likedMenusTop3;  // 가장 좋아하는 메뉴 상위 3개
-    private List<MenuSelectionResponseDTO> dislikedMenusTop3;  // 가장 싫어하는 메뉴 상위 3개
-    private List<String> additionalAnswers;
+    @Getter
+    @Setter
+    public static class MessageToDietitianDTO {
+        private Long questionId; // 메시지 질문 ID
+        private LocalDateTime responseDate; // 응답 날짜
+        private String message; // 영양사에게 남기는 메시지
+    }
 }
