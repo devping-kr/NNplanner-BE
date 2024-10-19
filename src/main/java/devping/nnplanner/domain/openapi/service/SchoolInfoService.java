@@ -40,6 +40,7 @@ public class SchoolInfoService {
         log.info("start");
 
         while (true) {
+
             SchoolInfoResponseDTO response =
                 webClient.get()
                          .uri(uriBuilder -> uriBuilder
@@ -53,10 +54,11 @@ public class SchoolInfoService {
                          .bodyToMono(SchoolInfoResponseDTO.class)
                          .block();
 
-            if (response != null && !response.getSchoolInfo().isEmpty()) {
+            if (response != null &&
+                response.getSchoolInfo() != null &&
+                !response.getSchoolInfo().isEmpty()) {
 
                 saveSchoolInfo(response.getSchoolInfo().get(1).getRow());
-
                 pageNo++;
 
             } else {
