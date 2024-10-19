@@ -155,7 +155,7 @@ public class MonthMenuService {
                                       requestDTO.getMajorCategory(), requestDTO.getMinorCategory())
                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-        monthMenu.update(menuCategory, monthMenu.getMonthMenuName());
+        monthMenu.update(menuCategory, requestDTO.getMonthMenuName());
 
         monthMenuRepository.save(monthMenu);
 
