@@ -18,6 +18,7 @@ public class BatchService {
     private final JobLauncher jobLauncher;
     private final Job importFoodDataJob;
     private final Job importHospitalMenuJob;
+    private final Job schoolMenuJob;
 
     @Async
     public void startFoodBatchJob() {
@@ -45,7 +46,22 @@ public class BatchService {
             log.info("병원 메뉴 배치 작업 끝");
 
         } catch (Exception e) {
-            log.error("배치 작업 실패: {}", e.getMessage());
+            log.error("병원 메뉴 배치 작업 실패: {}", e.getMessage());
+        }
+    }
+
+    @Async
+    public void startSchoolMenuBatchJob() {
+        try {
+            JobParameters jobParameters = new JobParametersBuilder()
+                .addString("uniqueId", UUID.randomUUID().toString())
+                .toJobParameters();
+
+            jobLauncher.run(schoolMenuJob, jobParameters);
+            log.info("급식 배치 작업 끝");
+
+        } catch (Exception e) {
+            log.error("급식 배치 작업 실패: {}", e.getMessage());
         }
     }
 }
