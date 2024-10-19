@@ -6,8 +6,6 @@ import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OpenApiController {
 
-    private final JobLauncher jobLauncher;
-    private final Job importHospitalMenuJob;
     private final SchoolInfoService schoolInfoService;
     private final BatchService batchService;
 
@@ -47,5 +43,13 @@ public class OpenApiController {
         batchService.startHospitalMenuBatchJob();
 
         return GlobalResponse.OK("병원 메뉴 필터 성공, 배치 작업이 백그라운드에서 실행됩니다.", null);
+    }
+
+    @GetMapping("/school-menu")
+    public ResponseEntity<ApiResponse<Void>> getSchoolMenu() {
+
+        batchService.startSchoolMenuBatchJob();
+
+        return GlobalResponse.OK("급식 api 호출 성공, 배치 작업이 백그라운드에서 실행됩니다.", null);
     }
 }
