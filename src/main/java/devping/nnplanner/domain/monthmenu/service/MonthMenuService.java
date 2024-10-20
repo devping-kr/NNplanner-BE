@@ -6,18 +6,21 @@ import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO.MonthMenusSave;
 import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.HospitalMonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthFoodListResponseDTO;
-import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.SchoolMonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenuHospital;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuHospitalRepository;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
 import devping.nnplanner.domain.openapi.entity.Food;
 import devping.nnplanner.domain.openapi.entity.HospitalMenu;
+import devping.nnplanner.domain.openapi.entity.SchoolMenu;
 import devping.nnplanner.domain.openapi.repository.FoodRepository;
 import devping.nnplanner.domain.openapi.repository.HospitalMenuRepository;
+import devping.nnplanner.domain.openapi.repository.SchoolMenuRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
@@ -43,8 +46,9 @@ public class MonthMenuService {
     private final HospitalMenuRepository hospitalMenuRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final MonthMenuHospitalRepository monthMenuHospitalRepository;
+    private final SchoolMenuRepository schoolMenuRepository;
 
-    public List<MonthMenuAutoResponseDTO> createMonthMenuAuto(
+    public List<HospitalMonthMenuAutoResponseDTO> createHospitalMonthMenuAuto(
         MonthMenuAutoRequestDTO requestDTO) {
 
         if (requestDTO.getMajorCategory().equals("병원")) {
@@ -54,11 +58,38 @@ public class MonthMenuService {
                     requestDTO.getMinorCategory(), requestDTO.getDayCount());
 
             return randomHospitalMenus.stream()
-                                      .map(MonthMenuAutoResponseDTO::new)
+                                      .map(HospitalMonthMenuAutoResponseDTO::new)
                                       .collect(Collectors.toList());
+        } else {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
         }
+    }
 
-        return Collections.emptyList();
+    public List<SchoolMonthMenuAutoResponseDTO> createSchoolMonthMenuAuto(
+        MonthMenuAutoRequestDTO requestDTO) {
+
+        if (requestDTO.getMajorCategory().equals("학교")) {
+
+            List<SchoolMenu> randomSchoolMenus =
+                schoolMenuRepository.findRandomSchoolMenusBySchoolKindName(
+                    requestDTO.getMinorCategory(), requestDTO.getDayCount());
+
+            return randomSchoolMenus.stream()
+                                    .map(SchoolMonthMenuAutoResponseDTO::new)
+                                    .collect(Collectors.toList());
+
+        } else if (requestDTO.getMajorCategory().equals("학교명")) {
+
+            List<SchoolMenu> randomSchoolMenus =
+                schoolMenuRepository.findRandomSchoolMenusBySchoolName(
+                    requestDTO.getMinorCategory(), requestDTO.getDayCount());
+
+            return randomSchoolMenus.stream()
+                                    .map(SchoolMonthMenuAutoResponseDTO::new)
+                                    .collect(Collectors.toList());
+        } else {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
     }
 
     @Transactional

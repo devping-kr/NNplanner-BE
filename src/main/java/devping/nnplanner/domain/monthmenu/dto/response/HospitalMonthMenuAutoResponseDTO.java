@@ -8,7 +8,7 @@ import java.util.UUID;
 import lombok.Getter;
 
 @Getter
-public class MonthMenuAutoResponseDTO {
+public class HospitalMonthMenuAutoResponseDTO {
 
     private final UUID hospitalMenuId;
 
@@ -16,7 +16,7 @@ public class MonthMenuAutoResponseDTO {
 
     private final List<FoodResponseDTO> foods;
 
-    public MonthMenuAutoResponseDTO(HospitalMenu hospitalMenu) {
+    public HospitalMonthMenuAutoResponseDTO(HospitalMenu hospitalMenu) {
 
         this.hospitalMenuId = hospitalMenu.getHospitalMenuId();
         this.hospitalMenuKind = hospitalMenu.getHospitalMenuKind();

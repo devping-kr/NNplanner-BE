@@ -3,12 +3,11 @@ package devping.nnplanner.domain.monthmenu.controller;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
-import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.HospitalMonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.SchoolMonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.service.MonthMenuService;
-import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
-import devping.nnplanner.domain.survey.dto.response.SurveyResponseDTO;
 import devping.nnplanner.domain.survey.service.SurveyService;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
@@ -42,14 +41,24 @@ public class MonthMenuController {
     private final MonthMenuService monthMenuService;
     private final SurveyService surveyService;
 
-    @PostMapping("/auto")
-    public ResponseEntity<ApiResponse<List<MonthMenuAutoResponseDTO>>> createMonthMenuAuto(
+    @PostMapping("/hospital-auto")
+    public ResponseEntity<ApiResponse<List<HospitalMonthMenuAutoResponseDTO>>> createHospitalMonthMenuAuto(
         @RequestBody @Valid MonthMenuAutoRequestDTO monthMenuAutoRequestDTO) {
 
-        List<MonthMenuAutoResponseDTO> monthMenuAutoResponseDTO =
-            monthMenuService.createMonthMenuAuto(monthMenuAutoRequestDTO);
+        List<HospitalMonthMenuAutoResponseDTO> hospitalMonthMenuAutoResponseDTO =
+            monthMenuService.createHospitalMonthMenuAuto(monthMenuAutoRequestDTO);
 
-        return GlobalResponse.CREATED("자동 식단 생성 성공", monthMenuAutoResponseDTO);
+        return GlobalResponse.CREATED("병원 자동 식단 생성 성공", hospitalMonthMenuAutoResponseDTO);
+    }
+
+    @PostMapping("/school-auto")
+    public ResponseEntity<ApiResponse<List<SchoolMonthMenuAutoResponseDTO>>> createSchoolMonthMenuAuto(
+        @RequestBody @Valid MonthMenuAutoRequestDTO monthMenuAutoRequestDTO) {
+
+        List<SchoolMonthMenuAutoResponseDTO> hospitalMonthMenuAutoResponseDTO =
+            monthMenuService.createSchoolMonthMenuAuto(monthMenuAutoRequestDTO);
+
+        return GlobalResponse.CREATED("학교 자동 식단 생성 성공", hospitalMonthMenuAutoResponseDTO);
     }
 
     @PostMapping("/save")
