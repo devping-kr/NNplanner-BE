@@ -6,20 +6,23 @@ import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO.MonthMenusSave;
 import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
-import devping.nnplanner.domain.monthmenu.dto.response.HospitalMonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthFoodListResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
-import devping.nnplanner.domain.monthmenu.dto.response.SchoolMonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenuHospital;
+import devping.nnplanner.domain.monthmenu.entity.MonthMenuSchool;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuHospitalRepository;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
+import devping.nnplanner.domain.monthmenu.repository.MonthMenuSchoolRepository;
 import devping.nnplanner.domain.openapi.entity.Food;
 import devping.nnplanner.domain.openapi.entity.HospitalMenu;
+import devping.nnplanner.domain.openapi.entity.SchoolInfo;
 import devping.nnplanner.domain.openapi.entity.SchoolMenu;
 import devping.nnplanner.domain.openapi.repository.FoodRepository;
 import devping.nnplanner.domain.openapi.repository.HospitalMenuRepository;
+import devping.nnplanner.domain.openapi.repository.SchoolInfoRepository;
 import devping.nnplanner.domain.openapi.repository.SchoolMenuRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
@@ -27,7 +30,6 @@ import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,48 +49,66 @@ public class MonthMenuService {
     private final MenuCategoryRepository menuCategoryRepository;
     private final MonthMenuHospitalRepository monthMenuHospitalRepository;
     private final SchoolMenuRepository schoolMenuRepository;
+    private final MonthMenuSchoolRepository monthMenuSchoolRepository;
+    private final SchoolInfoRepository schoolInfoRepository;
 
-    public List<HospitalMonthMenuAutoResponseDTO> createHospitalMonthMenuAuto(
+    public List<MonthMenuAutoResponseDTO> createHospitalMonthMenuAuto(
         MonthMenuAutoRequestDTO requestDTO) {
 
-        if (requestDTO.getMajorCategory().equals("병원")) {
+        switch (requestDTO.getMajorCategory()) {
+            case "병원" -> {
 
-            List<HospitalMenu> randomHospitalMenus =
-                hospitalMenuRepository.findRandomHospitalMenusByCategory(
-                    requestDTO.getMinorCategory(), requestDTO.getDayCount());
+                List<HospitalMenu> randomHospitalMenus =
+                    hospitalMenuRepository.findRandomHospitalMenusByCategory(
+                        requestDTO.getMinorCategory(), requestDTO.getDayCount());
 
-            return randomHospitalMenus.stream()
-                                      .map(HospitalMonthMenuAutoResponseDTO::new)
-                                      .collect(Collectors.toList());
-        } else {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-        }
-    }
+                return randomHospitalMenus.stream()
+                                          .map(menu -> {
+                                              MonthMenuAutoResponseDTO monthMenuAutoResponseDTO
+                                                  = new MonthMenuAutoResponseDTO();
 
-    public List<SchoolMonthMenuAutoResponseDTO> createSchoolMonthMenuAuto(
-        MonthMenuAutoRequestDTO requestDTO) {
+                                              monthMenuAutoResponseDTO.hospitalMenu(menu);
 
-        if (requestDTO.getMajorCategory().equals("학교")) {
+                                              return monthMenuAutoResponseDTO;
+                                          })
+                                          .toList();
+            }
+            case "학교" -> {
 
-            List<SchoolMenu> randomSchoolMenus =
-                schoolMenuRepository.findRandomSchoolMenusBySchoolKindName(
-                    requestDTO.getMinorCategory(), requestDTO.getDayCount());
+                List<SchoolMenu> randomSchoolMenus =
+                    schoolMenuRepository.findRandomSchoolMenusBySchoolKindName(
+                        requestDTO.getMinorCategory(), requestDTO.getDayCount());
 
-            return randomSchoolMenus.stream()
-                                    .map(SchoolMonthMenuAutoResponseDTO::new)
-                                    .collect(Collectors.toList());
+                return randomSchoolMenus.stream()
+                                        .map(menu -> {
+                                            MonthMenuAutoResponseDTO monthMenuAutoResponseDTO
+                                                = new MonthMenuAutoResponseDTO();
 
-        } else if (requestDTO.getMajorCategory().equals("학교명")) {
+                                            monthMenuAutoResponseDTO.schoolKindName(menu);
 
-            List<SchoolMenu> randomSchoolMenus =
-                schoolMenuRepository.findRandomSchoolMenusBySchoolName(
-                    requestDTO.getMinorCategory(), requestDTO.getDayCount());
+                                            return monthMenuAutoResponseDTO;
+                                        })
+                                        .toList();
 
-            return randomSchoolMenus.stream()
-                                    .map(SchoolMonthMenuAutoResponseDTO::new)
-                                    .collect(Collectors.toList());
-        } else {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
+            }
+            case "학교명" -> {
+
+                List<SchoolMenu> randomSchoolMenus =
+                    schoolMenuRepository.findRandomSchoolMenusBySchoolName(
+                        requestDTO.getMinorCategory(), requestDTO.getDayCount());
+
+                return randomSchoolMenus.stream()
+                                        .map(menu -> {
+                                            MonthMenuAutoResponseDTO monthMenuAutoResponseDTO
+                                                = new MonthMenuAutoResponseDTO();
+
+                                            monthMenuAutoResponseDTO.schoolName(menu);
+
+                                            return monthMenuAutoResponseDTO;
+                                        })
+                                        .toList();
+            }
+            default -> throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
 
@@ -105,17 +125,18 @@ public class MonthMenuService {
         monthMenu.create(userDetails.getUser(), menuCategory, requestDTO.getMonthMenuName());
         monthMenuRepository.save(monthMenu);
 
-        if (requestDTO.getMajorCategory().equals("병원")) {
-            requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
-                if (menuSaveDTO.getHospitalMenuId() != null) {
+        switch (requestDTO.getMajorCategory()) {
+            case "병원" -> requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+                if (menuSaveDTO.getMenuId() != null) {
 
                     HospitalMenu hospitalMenu =
                         hospitalMenuRepository
-                            .findById(UUID.fromString(menuSaveDTO.getHospitalMenuId()))
+                            .findById(UUID.fromString(menuSaveDTO.getMenuId()))
                             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
                     MonthMenuHospital monthMenuHospital = new MonthMenuHospital();
-                    monthMenuHospital.create(menuSaveDTO.getMenuDate(), monthMenu, hospitalMenu);
+                    monthMenuHospital.create(menuSaveDTO.getMenuDate(), monthMenu,
+                        hospitalMenu);
                     monthMenuHospitalRepository.save(monthMenuHospital);
 
                 } else {
@@ -123,11 +144,67 @@ public class MonthMenuService {
                     HospitalMenu hospitalMenu = createHospitalMenu(requestDTO, menuSaveDTO);
 
                     MonthMenuHospital monthMenuHospital = new MonthMenuHospital();
-                    monthMenuHospital.create(menuSaveDTO.getMenuDate(), monthMenu, hospitalMenu);
+                    monthMenuHospital.create(menuSaveDTO.getMenuDate(), monthMenu,
+                        hospitalMenu);
                     monthMenuHospitalRepository.save(monthMenuHospital);
                 }
             });
-        }//TODO: majorCategory 별로 나눠서 저장해야함
+            case "학교" -> requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+
+                if (menuSaveDTO.getMenuId() != null) {
+
+                    SchoolMenu schoolMenu =
+                        schoolMenuRepository
+                            .findById(UUID.fromString(menuSaveDTO.getMenuId()))
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
+                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
+                    monthMenuSchoolRepository.save(monthMenuSchool);
+
+                } else {
+
+                    SchoolInfo schoolInfo =
+                        schoolInfoRepository
+                            .findTop1BySchoolKindName(requestDTO.getMinorCategory())
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                    SchoolMenu schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
+
+                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
+                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
+                    monthMenuSchoolRepository.save(monthMenuSchool);
+                }
+            });
+            case "학교명" -> requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+
+                if (menuSaveDTO.getMenuId() != null) {
+
+                    SchoolMenu schoolMenu =
+                        schoolMenuRepository
+                            .findById(UUID.fromString(menuSaveDTO.getMenuId()))
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
+                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
+                    monthMenuSchoolRepository.save(monthMenuSchool);
+
+                } else {
+
+                    SchoolInfo schoolInfo =
+                        schoolInfoRepository
+                            .findBySchoolName(requestDTO.getMinorCategory())
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                    SchoolMenu schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
+
+                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
+                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
+                    monthMenuSchoolRepository.save(monthMenuSchool);
+                }
+            });
+            default -> throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -164,11 +241,22 @@ public class MonthMenuService {
                 monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
 
             List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-                createMonthFoodListResponseDTOS(monthMenuHospitalList);
+                createHospitalMonthFoodList(monthMenuHospitalList);
 
             return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+
+        } else if (monthMenu.getMenuCategory().getMajorCategory().equals("학교") ||
+            monthMenu.getMenuCategory().getMajorCategory().equals("학교명")) {
+
+            List<MonthMenuSchool> monthMenuSchoolList =
+                monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+
+            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+                createSchoolMonthFoodList(monthMenuSchoolList);
+
+            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+
         } else {
-            //TODO: majorCategory 별로 나눠서 조회해야함
             throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
@@ -194,7 +282,7 @@ public class MonthMenuService {
 
             requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
 
-                if (menuSaveDTO.getHospitalMenuId() == null) {
+                if (menuSaveDTO.getMenuId() == null) {
 
                     MonthMenuHospital monthMenuHospital =
                         monthMenuHospitalRepository
@@ -223,11 +311,49 @@ public class MonthMenuService {
                 monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
 
             List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-                createMonthFoodListResponseDTOS(monthMenuHospitalList);
+                createHospitalMonthFoodList(monthMenuHospitalList);
 
             return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+
+        } else if (monthMenu.getMenuCategory().getMajorCategory().equals("학교") ||
+            monthMenu.getMenuCategory().getMajorCategory().equals("학교명")) {
+
+            requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+
+                if (menuSaveDTO.getMenuId() == null) {
+
+                    MonthMenuSchool monthMenuSchool =
+                        monthMenuSchoolRepository
+                            .findByMonthMenu_MonthMenuIdAndMenuDate(monthMenuId,
+                                menuSaveDTO.getMenuDate())
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                    SchoolInfo schoolInfo = monthMenuSchool.getSchoolMenu().getSchoolInfo();
+
+                    monthMenuSchoolRepository.delete(monthMenuSchool);
+
+                    if (monthMenuSchool.getSchoolMenu().getCreatedBy() != null
+                        && !monthMenuSchool.getSchoolMenu().getCreatedBy().isEmpty()) {
+                        schoolMenuRepository.delete(monthMenuSchool.getSchoolMenu());
+                    }
+
+                    SchoolMenu schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
+
+                    MonthMenuSchool saveMonthMenuSchool = new MonthMenuSchool();
+                    saveMonthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
+                    monthMenuSchoolRepository.save(saveMonthMenuSchool);
+                }
+            });
+
+            List<MonthMenuSchool> monthMenuSchoolList =
+                monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+
+            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+                createSchoolMonthFoodList(monthMenuSchoolList);
+
+            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+
         } else {
-            //TODO: majorCategory 별로 나눠서 업데이트 해야함
             throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
@@ -260,8 +386,32 @@ public class MonthMenuService {
             });
 
             monthMenuRepository.delete(monthMenu);
+        } else if (monthMenu.getMenuCategory().getMajorCategory().equals("학교") ||
+            monthMenu.getMenuCategory().getMajorCategory().equals("학교명")) {
+
+            List<MonthMenuSchool> monthMenuSchoolList =
+                monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(
+                    monthMenu.getMonthMenuId());
+
+            monthMenuSchoolList.forEach(monthMenuSchool -> {
+
+                SchoolMenu schoolMenu =
+                    schoolMenuRepository
+                        .findById(monthMenuSchool.getSchoolMenu().getSchoolMenuId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+                monthMenuSchoolRepository.delete(monthMenuSchool);
+
+                if (schoolMenu.getCreatedBy() != null) {
+                    schoolMenuRepository.delete(schoolMenu);
+                }
+            });
+
+            monthMenuRepository.delete(monthMenu);
+
+        } else {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
         }
-        //TODO: 학교식단 삭제 구현해야함
     }
 
     @Transactional(readOnly = true)
@@ -282,19 +432,19 @@ public class MonthMenuService {
                                             MonthMenusSave menusSave) {
 
         Food food1 = foodRepository.findById(UUID.fromString(menusSave.getFood1()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         Food food2 = foodRepository.findById(UUID.fromString(menusSave.getFood2()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         Food food3 = foodRepository.findById(UUID.fromString(menusSave.getFood3()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         Food food4 = foodRepository.findById(UUID.fromString(menusSave.getFood4()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         Food food5 = foodRepository.findById(UUID.fromString(menusSave.getFood5()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         Food food6 = foodRepository.findById(UUID.fromString(menusSave.getFood6()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         Food food7 = foodRepository.findById(UUID.fromString(menusSave.getFood7()))
-                                   .orElse(null);
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         HospitalMenu hospitalMenu = HospitalMenu.builder()
                                                 .hospitalMenuKind(
@@ -313,26 +463,93 @@ public class MonthMenuService {
         return hospitalMenu;
     }
 
-    private List<MonthFoodListResponseDTO> createMonthFoodListResponseDTOS(
+    private SchoolMenu createSchoolMenu(SchoolInfo schoolInfo,
+                                        MonthMenusSave menusSave) {
+
+        Food food1 = foodRepository.findById(UUID.fromString(menusSave.getFood1()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Food food2 = foodRepository.findById(UUID.fromString(menusSave.getFood2()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Food food3 = foodRepository.findById(UUID.fromString(menusSave.getFood3()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Food food4 = foodRepository.findById(UUID.fromString(menusSave.getFood4()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Food food5 = foodRepository.findById(UUID.fromString(menusSave.getFood5()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Food food6 = foodRepository.findById(UUID.fromString(menusSave.getFood6()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Food food7 = foodRepository.findById(UUID.fromString(menusSave.getFood7()))
+                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        SchoolMenu schoolMenu = new SchoolMenu();
+        schoolMenu.create(
+            schoolInfo,
+            food1,
+            food2,
+            food3,
+            food4,
+            food5,
+            food6,
+            food7
+        );
+
+        schoolMenuRepository.save(schoolMenu);
+
+        return schoolMenu;
+    }
+
+    private List<MonthFoodListResponseDTO> createHospitalMonthFoodList(
         List<MonthMenuHospital> monthMenuHospitalList) {
 
         return monthMenuHospitalList.stream().map(MHMenu -> {
 
             HospitalMenu hospitalMenu = MHMenu.getHospitalMenu();
 
-            List<FoodResponseDTO> foodList = Stream.of(
-                                                       hospitalMenu.getFood1(),
-                                                       hospitalMenu.getFood2(),
-                                                       hospitalMenu.getFood3(),
-                                                       hospitalMenu.getFood4(),
-                                                       hospitalMenu.getFood5(),
-                                                       hospitalMenu.getFood6(),
-                                                       hospitalMenu.getFood7()
-                                                   )
-                                                   .map(FoodResponseDTO::new)
-                                                   .toList();
+            List<FoodResponseDTO> foodList =
+                Stream.of(
+                          hospitalMenu.getFood1(),
+                          hospitalMenu.getFood2(),
+                          hospitalMenu.getFood3(),
+                          hospitalMenu.getFood4(),
+                          hospitalMenu.getFood5(),
+                          hospitalMenu.getFood6(),
+                          hospitalMenu.getFood7()
+                      )
+                      .map(FoodResponseDTO::new)
+                      .toList();
 
-            return new MonthFoodListResponseDTO(MHMenu, foodList);
+            MonthFoodListResponseDTO monthFoodListResponseDTO = new MonthFoodListResponseDTO();
+            monthFoodListResponseDTO.monthMenuHospital(MHMenu, foodList);
+
+            return monthFoodListResponseDTO;
         }).toList();
+    }
+
+    private List<MonthFoodListResponseDTO> createSchoolMonthFoodList(
+        List<MonthMenuSchool> monthMenuSchoolList) {
+
+        return monthMenuSchoolList
+            .stream().map(monthMenuSchool -> {
+
+                List<FoodResponseDTO> foodList =
+                    Stream.of(
+                              monthMenuSchool.getSchoolMenu().getFood1(),
+                              monthMenuSchool.getSchoolMenu().getFood2(),
+                              monthMenuSchool.getSchoolMenu().getFood3(),
+                              monthMenuSchool.getSchoolMenu().getFood4(),
+                              monthMenuSchool.getSchoolMenu().getFood5(),
+                              monthMenuSchool.getSchoolMenu().getFood6(),
+                              monthMenuSchool.getSchoolMenu().getFood7()
+                          )
+                          .map(FoodResponseDTO::new)
+                          .toList();
+
+                MonthFoodListResponseDTO monthFoodListResponseDTO = new MonthFoodListResponseDTO();
+                monthFoodListResponseDTO.monthMenuSchool(monthMenuSchool,
+                    foodList);
+
+                return monthFoodListResponseDTO;
+            })
+            .toList();
     }
 }
