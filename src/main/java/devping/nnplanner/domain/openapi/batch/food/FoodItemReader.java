@@ -17,7 +17,6 @@ public class FoodItemReader implements ItemReader<List<FoodItem>> {
     private final WebClient webClient;
     private Integer pageNo = 1;
     private final Integer numOfRows = 100;
-    private int totalPages = Integer.MAX_VALUE;
 
     @Value("${api.food.key}")
     private String apiKey;
@@ -41,10 +40,6 @@ public class FoodItemReader implements ItemReader<List<FoodItem>> {
 
     private List<FoodItem> processPage() {
 
-        if (pageNo > totalPages) {
-            return null;
-        }
-
         FoodApiResponseDTO response =
             webClient.get()
                      .uri(uriBuilder -> uriBuilder
@@ -62,12 +57,6 @@ public class FoodItemReader implements ItemReader<List<FoodItem>> {
         }
 
         log.info("현재 페이지 : {}", pageNo);
-
-        if (pageNo == 1) {
-            String totalCountStr = response.getBody().getTotalCount();
-            int totalCount = Integer.parseInt(totalCountStr);
-            totalPages = (int) Math.ceil((double) totalCount / numOfRows);
-        }
 
         pageNo++;
 

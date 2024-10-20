@@ -1,13 +1,13 @@
 package devping.nnplanner.domain.openapi.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
 
 @Table(name = "school_infos")
 @Getter
@@ -17,8 +17,8 @@ import org.hibernate.annotations.UuidGenerator;
 public class SchoolInfo {
 
     @Id
-    @UuidGenerator
-    private UUID schoolInfoId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long schoolInfoId;
 
     private String schoolAreaCode;
 
