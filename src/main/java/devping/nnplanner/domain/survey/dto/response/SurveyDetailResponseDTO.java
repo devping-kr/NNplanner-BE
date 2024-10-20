@@ -3,6 +3,7 @@ package devping.nnplanner.domain.survey.dto.response;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,8 @@ public class SurveyDetailResponseDTO {
     private List<QuestionSatisfactionDistribution> satisfactionDistributions;
 
     private AverageScores averageScores;
+
+    private LocalDateTime deadline;
 
     @Getter
     @Setter
