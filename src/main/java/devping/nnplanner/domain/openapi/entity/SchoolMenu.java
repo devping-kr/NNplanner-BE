@@ -1,10 +1,12 @@
 package devping.nnplanner.domain.openapi.entity;
 
+import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,11 +19,11 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class SchoolMenu {
+public class SchoolMenu extends BaseTimeEntity {
 
     @Id
     @UuidGenerator
-    private String schoolMenuId;
+    private UUID schoolMenuId;
 
     @ManyToOne
     @JoinColumn(name = "school_info_id")
