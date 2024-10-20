@@ -168,6 +168,7 @@ public class SurveyService {
 
         SurveyDetailResponseDTO response = new SurveyDetailResponseDTO();
         response.setSurveyName(survey.getSurveyName());
+        response.setDeadline(survey.getDeadlineAt());
 
         // 응답 목록을 조회
         List<SurveyResponse> responses = surveyResponseRepository.findBySurvey(survey);
