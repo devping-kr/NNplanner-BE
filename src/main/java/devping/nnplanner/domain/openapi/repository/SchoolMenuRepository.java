@@ -5,7 +5,8 @@ import devping.nnplanner.domain.openapi.entity.SchoolMenu;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SchoolMenuRepository extends JpaRepository<SchoolMenu, UUID> {
+public interface SchoolMenuRepository
+    extends JpaRepository<SchoolMenu, UUID>, SchoolMenuRepositoryCustom {
 
     boolean existsBySchoolInfo_SchoolInfoIdAndFood1AndFood2AndFood3AndFood4AndFood5AndFood6AndFood7(
         Long schoolInfoId,
