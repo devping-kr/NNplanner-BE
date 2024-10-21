@@ -2,6 +2,7 @@ package devping.nnplanner.domain.monthmenu.service;
 
 import devping.nnplanner.domain.menucategory.entity.MenuCategory;
 import devping.nnplanner.domain.menucategory.repository.MenuCategoryRepository;
+import devping.nnplanner.domain.monthmenu.dto.request.MonthCountRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO.MonthMenusSave;
@@ -27,6 +28,8 @@ import devping.nnplanner.domain.openapi.repository.SchoolMenuRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -415,9 +418,29 @@ public class MonthMenuService {
     }
 
     @Transactional(readOnly = true)
-    public Integer countMonthMenu(UserDetailsImpl userDetails) {
+    public MonthCountRequestDTO countMonthMenu(UserDetailsImpl userDetails) {
 
-        return monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
+        Integer totalMonthCount =
+            monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
+
+        // 이번 달의 시작과 끝 날짜 구하기
+        LocalDate now = LocalDate.now();
+        LocalDate firstDayOfThisMonth = now.withDayOfMonth(1);
+        LocalDateTime startOfCurrentMonth = firstDayOfThisMonth.atStartOfDay();
+        LocalDateTime endOfCurrentMonth = now.plusMonths(1).withDayOfMonth(1).atStartOfDay();
+
+        // 저번 달의 시작과 끝 날짜 구하기
+        LocalDate firstDayOfLastMonth = now.minusMonths(1).withDayOfMonth(1);
+        LocalDateTime startOfLastMonth = firstDayOfLastMonth.atStartOfDay();
+        LocalDateTime endOfLastMonth = firstDayOfThisMonth.atStartOfDay();
+
+        Integer currentMonthCount = monthMenuRepository.countByUser_UserIdAndCreatedAtBetween(
+            userDetails.getUser().getUserId(), startOfCurrentMonth, endOfCurrentMonth);
+
+        Integer lastMonthCount = monthMenuRepository.countByUser_UserIdAndCreatedAtBetween(
+            userDetails.getUser().getUserId(), startOfLastMonth, endOfLastMonth);
+
+        return new MonthCountRequestDTO(totalMonthCount, currentMonthCount, lastMonthCount);
     }
 
     @Transactional(readOnly = true)
@@ -426,6 +449,39 @@ public class MonthMenuService {
         Page<Food> foodPage = foodRepository.findBySearchFood(foodName, pageable);
 
         return foodPage.stream().map(FoodResponseDTO::new).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public MonthMenuPageResponseDTO searchMonthMenus(UserDetailsImpl userDetails,
+                                                     String majorCategory,
+                                                     String minorCategory,
+                                                     String menuName,
+                                                     Integer year,
+                                                     Integer month,
+                                                     Pageable pageable) {
+
+        Page<MonthMenu> monthMenuPage =
+            monthMenuRepository.searchByMenuNameOrDateAndCategory(
+                userDetails.getUser().getUserId(),
+                majorCategory,
+                minorCategory,
+                menuName,
+                year,
+                month,
+                pageable);
+
+        List<MonthMenuResponseDTO> menuResponseDTOS =
+            monthMenuPage.stream()
+                         .map(page -> new MonthMenuResponseDTO(page, null))
+                         .toList();
+
+        return new MonthMenuPageResponseDTO(
+            monthMenuPage.getNumber(),
+            monthMenuPage.getTotalPages(),
+            monthMenuPage.getTotalElements(),
+            monthMenuPage.getSize(),
+            menuResponseDTOS
+        );
     }
 
     private HospitalMenu createHospitalMenu(MonthMenuSaveRequestDTO requestDTO,
