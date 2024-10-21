@@ -55,7 +55,8 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                 .requestMatchers( // 인증o
-                    "/api/auths/logout")
+                    "/api/auths/logout",
+                    "/api/open-apis/recipe")
                 .authenticated()
                 .requestMatchers( // 인증x
                     "/api/auths/**",
