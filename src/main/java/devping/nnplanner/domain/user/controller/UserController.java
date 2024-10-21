@@ -8,6 +8,7 @@ import devping.nnplanner.global.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,5 +41,14 @@ public class UserController {
         userService.editPassword(userDetails, userRequestDTO);
 
         return GlobalResponse.OK("비밀번호 수정 성공", null);
+    }
+
+    @DeleteMapping("/sign-out")
+    public ResponseEntity<ApiResponse<String>> signOut(
+        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        userService.signOut(userDetails);
+
+        return GlobalResponse.OK("회원 탈퇴 성공", null);
     }
 }
