@@ -1,9 +1,12 @@
 package devping.nnplanner.domain.openapi.controller;
 
+import devping.nnplanner.domain.openapi.dto.response.RecipeResponseDTO;
 import devping.nnplanner.domain.openapi.service.BatchService;
+import devping.nnplanner.domain.openapi.service.OpenApiService;
 import devping.nnplanner.domain.openapi.service.SchoolInfoService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ public class OpenApiController {
 
     private final SchoolInfoService schoolInfoService;
     private final BatchService batchService;
+    private final OpenApiService openApiService;
 
     @GetMapping("/food")
     public ResponseEntity<ApiResponse<Void>> startFoodBatch() {
@@ -51,5 +55,14 @@ public class OpenApiController {
         batchService.startSchoolMenuBatchJob();
 
         return GlobalResponse.OK("급식 api 호출 성공, 배치 작업이 백그라운드에서 실행됩니다.", null);
+    }
+
+    @GetMapping("/recipe")
+    public ResponseEntity<ApiResponse<List<RecipeResponseDTO>>> getRecipe() {
+
+        List<RecipeResponseDTO> recipeResponseDTOList =
+            openApiService.getRecipe();
+
+        return GlobalResponse.OK("월별 레시피 조회 성공", recipeResponseDTOList);
     }
 }
