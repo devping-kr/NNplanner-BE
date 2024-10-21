@@ -15,7 +15,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -80,14 +79,5 @@ public class AuthController {
         authService.logout(httpRequest, userDetails);
 
         return GlobalResponse.OK("유저 로그아웃 성공", null);
-    }
-
-    @DeleteMapping("/sign-out")
-    public ResponseEntity<ApiResponse<String>> signOut(
-        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        authService.signOut(userDetails);
-
-        return GlobalResponse.OK("회원 탈퇴 성공", null);
     }
 }
