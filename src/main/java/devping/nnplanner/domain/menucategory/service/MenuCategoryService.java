@@ -1,8 +1,9 @@
 package devping.nnplanner.domain.menucategory.service;
 
-import devping.nnplanner.domain.menucategory.repository.MenuCategoryRepository;
-import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
 import devping.nnplanner.domain.openapi.repository.HospitalMenuRepository;
+import devping.nnplanner.domain.openapi.repository.SchoolInfoRepository;
+import devping.nnplanner.global.exception.CustomException;
+import devping.nnplanner.global.exception.ErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MenuCategoryService {
 
-    private final MenuCategoryRepository menuCategoryRepository;
     private final HospitalMenuRepository hospitalMenuRepository;
-    private final MonthMenuRepository monthMenuRepository;
+    private final SchoolInfoRepository schoolInfoRepository;
 
     @Transactional(readOnly = true)
     public List<String> getMenuCategory(String majorCategory) {
@@ -23,9 +23,16 @@ public class MenuCategoryService {
 
             return hospitalMenuRepository.findDistinctHospitalMenuKinds();
 
+        } else if (majorCategory.equals("학교")) {
+
+            return schoolInfoRepository.findDistinctSchoolKindNames();
+
+        } else if (majorCategory.equals("학교명")) {
+
+            return schoolInfoRepository.findDistinctSchoolNames();
 
         } else {
-            return null; //TODO: 학교,학교명인경우 추가
+            throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
 }

@@ -47,7 +47,7 @@ public class MonthMenuController {
         List<MonthMenuAutoResponseDTO> monthMenuAutoResponseDTO =
             monthMenuService.createHospitalMonthMenuAuto(monthMenuAutoRequestDTO);
 
-        return GlobalResponse.CREATED("병원 자동 식단 생성 성공", monthMenuAutoResponseDTO);
+        return GlobalResponse.CREATED("자동 식단 생성 성공", monthMenuAutoResponseDTO);
     }
 
     @PostMapping("/save")
