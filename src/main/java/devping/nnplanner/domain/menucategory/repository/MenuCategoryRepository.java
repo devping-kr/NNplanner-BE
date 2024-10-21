@@ -8,4 +8,6 @@ public interface MenuCategoryRepository extends JpaRepository<MenuCategory, Long
 
     Optional<MenuCategory> findByMajorCategoryAndMinorCategory(String majorCategory,
                                                                String minorCategory);
+
+    boolean existsByMajorCategoryAndMinorCategory(String majorCategory, String minorCategory);
 }
