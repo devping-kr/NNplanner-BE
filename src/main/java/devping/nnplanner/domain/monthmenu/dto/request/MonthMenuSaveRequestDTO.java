@@ -23,7 +23,7 @@ public class MonthMenuSaveRequestDTO {
     @Getter
     public static class MonthMenusSave {
 
-        private String hospitalMenuId;
+        private String menuId;
 
         @NotNull
         private LocalDate menuDate;

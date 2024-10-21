@@ -8,13 +8,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 @Table(name = "school_menus")
-@Builder
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
