@@ -26,4 +26,12 @@ public class MenuCategoryController {
 
         return GlobalResponse.OK("소분류 목록 조회 성공", menuCategory);
     }
+
+    @GetMapping("/add")
+    public ResponseEntity<ApiResponse<String>> addMenuCategories() {
+
+        menuCategoryService.addMenuCategories();
+
+        return GlobalResponse.OK("메뉴 카테고리 추가 성공, 작업이 백그라운드에서 실행됩니다.", null);
+    }
 }

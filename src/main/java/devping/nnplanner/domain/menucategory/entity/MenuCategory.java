@@ -22,4 +22,10 @@ public class MenuCategory {
 
     @Column(nullable = false)
     private String minorCategory;
+
+    public void create(String majorCategory,
+                       String minorCategory) {
+        this.majorCategory = majorCategory;
+        this.minorCategory = minorCategory;
+    }
 }
