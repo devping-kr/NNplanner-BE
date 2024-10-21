@@ -61,7 +61,7 @@ public class WebSecurityConfig {
                 .requestMatchers( // 인증x
                     "/api/auths/**",
                     "/api/open-apis/**",
-                    "/api/menu-categories",
+                    "/api/menu-categories/**",
                     "/actuator/health",
                     "/",
                     "/error",
