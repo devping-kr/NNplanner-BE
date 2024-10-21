@@ -5,8 +5,8 @@ import devping.nnplanner.domain.openapi.entity.HospitalMenu;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface HospitalMenuRepository extends JpaRepository<HospitalMenu, UUID>,
-    HospitalMenuRepositoryCustom {
+public interface HospitalMenuRepository
+    extends JpaRepository<HospitalMenu, UUID>, HospitalMenuRepositoryCustom {
 
     boolean existsByHospitalMenuKindAndFood1AndFood2AndFood3AndFood4AndFood5AndFood6AndFood7(
         String hospitalMenuKind,

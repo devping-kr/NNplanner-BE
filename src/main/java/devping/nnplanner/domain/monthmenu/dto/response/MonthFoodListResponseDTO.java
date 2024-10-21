@@ -1,6 +1,7 @@
 package devping.nnplanner.domain.monthmenu.dto.response;
 
 import devping.nnplanner.domain.monthmenu.entity.MonthMenuHospital;
+import devping.nnplanner.domain.monthmenu.entity.MonthMenuSchool;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -9,16 +10,23 @@ import lombok.Getter;
 @Getter
 public class MonthFoodListResponseDTO {
 
-    private final LocalDate menuDate;
+    private LocalDate menuDate;
 
-    private final UUID hospitalMenuId;
+    private UUID menuId;
 
-    private final List<FoodResponseDTO> foodList;
+    private List<FoodResponseDTO> foodList;
 
-    public MonthFoodListResponseDTO(MonthMenuHospital monthMenuHospital,
-                                    List<FoodResponseDTO> foodList) {
+    public void monthMenuHospital(MonthMenuHospital monthMenuHospital,
+                                  List<FoodResponseDTO> foodList) {
         this.menuDate = monthMenuHospital.getMenuDate();
-        this.hospitalMenuId = monthMenuHospital.getHospitalMenu().getHospitalMenuId();
+        this.menuId = monthMenuHospital.getHospitalMenu().getHospitalMenuId();
+        this.foodList = foodList;
+    }
+
+    public void monthMenuSchool(MonthMenuSchool monthMenuSchool,
+                                List<FoodResponseDTO> foodList) {
+        this.menuDate = monthMenuSchool.getMenuDate();
+        this.menuId = monthMenuSchool.getSchoolMenu().getSchoolMenuId();
         this.foodList = foodList;
     }
 }

@@ -2,12 +2,14 @@ package devping.nnplanner.domain.monthmenu.repository;
 
 import devping.nnplanner.domain.menucategory.entity.MenuCategory;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MonthMenuRepository extends JpaRepository<MonthMenu, UUID> {
+public interface MonthMenuRepository extends JpaRepository<MonthMenu, UUID>,
+    MonthMenuRepositoryCustom {
 
     Page<MonthMenu> findAllByUser_UserId(Long userId, Pageable pageable);
 
@@ -16,4 +18,8 @@ public interface MonthMenuRepository extends JpaRepository<MonthMenu, UUID> {
     Page<MonthMenu> findAllByUser_UserIdAndMenuCategory(Long userId,
                                                         MenuCategory menuCategory,
                                                         Pageable pageable);
+
+    Integer countByUser_UserIdAndCreatedAtBetween(Long userId,
+                                                  LocalDateTime startOfCurrentMonth,
+                                                  LocalDateTime endOfCurrentMonth);
 }
