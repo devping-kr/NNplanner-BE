@@ -77,5 +77,4 @@ public class AuthService {
         jwtUtil.deleteRefreshToken(userId, email);
         jwtUtil.logoutAccessToken(httpRequest);
     }
-
 }

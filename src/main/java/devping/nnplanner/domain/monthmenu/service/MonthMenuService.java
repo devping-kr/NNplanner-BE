@@ -25,6 +25,8 @@ import devping.nnplanner.domain.openapi.repository.FoodRepository;
 import devping.nnplanner.domain.openapi.repository.HospitalMenuRepository;
 import devping.nnplanner.domain.openapi.repository.SchoolInfoRepository;
 import devping.nnplanner.domain.openapi.repository.SchoolMenuRepository;
+import devping.nnplanner.domain.survey.entity.Survey;
+import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
@@ -54,6 +56,7 @@ public class MonthMenuService {
     private final SchoolMenuRepository schoolMenuRepository;
     private final MonthMenuSchoolRepository monthMenuSchoolRepository;
     private final SchoolInfoRepository schoolInfoRepository;
+    private final SurveyRepository surveyRepository;
 
     public List<MonthMenuAutoResponseDTO> createHospitalMonthMenuAuto(
         MonthMenuAutoRequestDTO requestDTO) {
@@ -367,6 +370,11 @@ public class MonthMenuService {
         MonthMenu monthMenu =
             monthMenuRepository.findById(monthMenuId)
                                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        List<Survey> surveys =
+            surveyRepository.findAllByMonthMenu_MonthMenuId(monthMenu.getMonthMenuId());
+
+        surveyRepository.deleteAll(surveys);
 
         if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
 
