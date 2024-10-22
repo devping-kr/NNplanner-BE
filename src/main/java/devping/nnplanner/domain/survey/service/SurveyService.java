@@ -240,12 +240,21 @@ public class SurveyService {
             if ("월별 만족도 점수(1~10)".equals(questionText) && response.getMonthlySatisfaction() != -1) {
                 Integer score = response.getMonthlySatisfaction();
                 distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+            } else if ("반찬 양 만족도 점수(1~10)".equals(questionText) && response.getPortionSatisfaction() != -1) {
+                Integer score = response.getPortionSatisfaction();
+                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+            } else if ("위생 만족도 점수(1~10)".equals(questionText) && response.getHygieneSatisfaction() != -1) {
+                Integer score = response.getHygieneSatisfaction();
+                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+            } else if ("맛 만족도 점수(1~10)".equals(questionText) && response.getTasteSatisfaction() != -1) {
+                Integer score = response.getTasteSatisfaction();
+                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
             }
-            // TODO: 다른 질문에 대한 로직도 동일하게 처리
         });
 
         return distributionMap;
     }
+
 
     private List<String> createTextResponseForUser(List<SurveyResponse> responses, String questionText) {
         return responses.stream()
