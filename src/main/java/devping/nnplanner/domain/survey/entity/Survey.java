@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.survey.entity;
 
+import devping.nnplanner.domain.auth.entity.User;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -41,6 +42,11 @@ public class Survey extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "survey", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<SurveyResponse> responses = new ArrayList<>();
+
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Survey(MonthMenu monthMenu, String surveyName, LocalDateTime deadlineAt, List<Question> questions) {
         this.monthMenu = monthMenu;

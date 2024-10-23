@@ -6,11 +6,13 @@ import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.*;
 import devping.nnplanner.domain.survey.entity.SurveyState;
 import devping.nnplanner.domain.survey.service.SurveyService;
+import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,9 +24,10 @@ public class SurveyController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<SurveyResponseDTO>> createSurvey(
-        @RequestBody @Valid SurveyRequestDTO requestDTO) {
+        @RequestBody @Valid SurveyRequestDTO requestDTO,
+        @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        SurveyResponseDTO responseDTO = surveyService.createSurvey(requestDTO);
+        SurveyResponseDTO responseDTO = surveyService.createSurvey(requestDTO, userDetails);
 
         return GlobalResponse.CREATED("설문 생성 성공", responseDTO);
     }
@@ -47,9 +50,10 @@ public class SurveyController {
 
     @GetMapping("/{surveyId}")
     public ResponseEntity<ApiResponse<SurveyDetailResponseDTO>> getSurveyDetail(
+        @AuthenticationPrincipal UserDetailsImpl userDetails,
         @PathVariable("surveyId") Long surveyId) {
 
-        SurveyDetailResponseDTO responseDTO = surveyService.getSurveyDetail(surveyId);
+        SurveyDetailResponseDTO responseDTO = surveyService.getSurveyDetail(userDetails, surveyId);
 
         return GlobalResponse.OK("설문 상세 조회 성공", responseDTO);
     }
