@@ -35,7 +35,9 @@ public enum ErrorCode {
     SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "설문을 찾을 수 없습니다."),
     INVALID_SURVEY_DEADLINE(HttpStatus.BAD_REQUEST, "설문 마감 기한이 현재 시간보다 이전입니다."),
     DUPLICATE_SURVEY(HttpStatus.CONFLICT, "동일한 설문이 이미 존재합니다."),
-    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "질문을 찾을 수 없습니다.");
+    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "질문을 찾을 수 없습니다."),
+    INVALID_ANSWER_TYPE(HttpStatus.BAD_REQUEST, "잘못된 응답 타입입니다."),
+    CANNOT_MODIFY_MANDATORY_QUESTION(HttpStatus.BAD_REQUEST, "기본 질문은 수정이 불가능합니다.");
 
     private final HttpStatus status;
     private final String message;
