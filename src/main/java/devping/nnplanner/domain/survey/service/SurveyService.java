@@ -310,94 +310,48 @@ public class SurveyService {
         Survey survey = surveyRepository.findById(surveyId)
                                         .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-        // 만족도 점수 처리
-        if (surveyResponseRequestDTO.getSatisfactionScore() != null) {
-            for (SurveyResponseRequestDTO.SatisfactionScoreDTO scoreDTO : surveyResponseRequestDTO.getSatisfactionScore()) {
-                Question question = questionRepository.findById(scoreDTO.getQuestionId())
-                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
-
-                SurveyResponse surveyResponse = new SurveyResponse();
-                surveyResponse.setSurvey(survey);
-                surveyResponse.setQuestion(question);
-                surveyResponse.setResponseDate(scoreDTO.getResponseDate()); // LocalDateTime 그대로 사용
-                surveyResponse.setSatisfactionScore(scoreDTO.getScore());
-                surveyResponseRepository.save(surveyResponse);
-                logger.info("Saved satisfaction score response for question ID: {}", question.getId());
-            }
+        // 기본 질문 처리
+        if (surveyResponseRequestDTO.getBasicQuestions() != null) {
+            processQuestionResponses(survey, surveyResponseRequestDTO.getBasicQuestions());
         }
 
-// 좋아하는 메뉴 처리
-        if (surveyResponseRequestDTO.getLikedMenusTop3() != null) {
-            for (SurveyResponseRequestDTO.MenuSelectionDTO menuDTO : surveyResponseRequestDTO.getLikedMenusTop3()) {
-                Question question = questionRepository.findById(menuDTO.getQuestionId())
-                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
-
-                SurveyResponse surveyResponse = new SurveyResponse();
-                surveyResponse.setSurvey(survey);
-                surveyResponse.setQuestion(question);
-                surveyResponse.setResponseDate(menuDTO.getResponseDate()); // LocalDateTime 그대로 사용
-                surveyResponse.setLikedMenus(menuDTO.getMenus());
-                surveyResponseRepository.save(surveyResponse);
-                logger.info("Saved liked menu response for question ID: {}", question.getId());
-            }
+        // 추가 질문 처리
+        if (surveyResponseRequestDTO.getAdditionalQuestions() != null) {
+            processQuestionResponses(survey, surveyResponseRequestDTO.getAdditionalQuestions());
         }
 
-// 싫어하는 메뉴 처리
-        if (surveyResponseRequestDTO.getDislikedMenusTop3() != null) {
-            for (SurveyResponseRequestDTO.MenuSelectionDTO menuDTO : surveyResponseRequestDTO.getDislikedMenusTop3()) {
-                Question question = questionRepository.findById(menuDTO.getQuestionId())
-                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
-
-                SurveyResponse surveyResponse = new SurveyResponse();
-                surveyResponse.setSurvey(survey);
-                surveyResponse.setQuestion(question);
-                surveyResponse.setResponseDate(menuDTO.getResponseDate()); // LocalDateTime 그대로 사용
-                surveyResponse.setDislikedMenus(menuDTO.getMenus());
-                surveyResponseRepository.save(surveyResponse);
-                logger.info("Saved disliked menu response for question ID: {}", question.getId());
-            }
-        }
-
-// 원하는 메뉴 처리
-        if (surveyResponseRequestDTO.getDesiredMenus() != null) {
-            for (SurveyResponseRequestDTO.MenuSelectionDTO menuDTO : surveyResponseRequestDTO.getDesiredMenus()) {
-                Question question = questionRepository.findById(menuDTO.getQuestionId())
-                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
-
-                SurveyResponse surveyResponse = new SurveyResponse();
-                surveyResponse.setSurvey(survey);
-                surveyResponse.setQuestion(question);
-                surveyResponse.setResponseDate(menuDTO.getResponseDate()); // LocalDateTime 그대로 사용
-                surveyResponse.setDesiredMenus(menuDTO.getMenus());
-                surveyResponseRepository.save(surveyResponse);
-                logger.info("Saved desired menu response for question ID: {}", question.getId());
-            }
-        }
-
-// 영양사에게 메시지 처리
-        if (surveyResponseRequestDTO.getMessageToDietitian() != null) {
-            for (SurveyResponseRequestDTO.MessageToDietitianDTO messageDTO : surveyResponseRequestDTO.getMessageToDietitian()) {
-                Question question = questionRepository.findById(messageDTO.getQuestionId())
-                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
-
-                SurveyResponse surveyResponse = new SurveyResponse();
-                surveyResponse.setSurvey(survey);
-                surveyResponse.setQuestion(question);
-                surveyResponse.setResponseDate(messageDTO.getResponseDate()); // LocalDateTime 그대로 사용
-                surveyResponse.setMessagesToDietitian(messageDTO.getMessage());
-                surveyResponseRepository.save(surveyResponse);
-                logger.info("Saved message to dietitian for question ID: {}", question.getId());
-            }
-        }
-
-
-        // 마지막으로 저장된 응답을 조회하여 응답 DTO 생성
         SurveyResponse lastResponse = surveyResponseRepository.findTopBySurveyOrderByResponseDateDesc(survey);
         if (lastResponse == null) {
             throw new CustomException(ErrorCode.BAD_REQUEST);
         }
 
-        return new SurveyResponseResponseDTO(lastResponse.getId(), survey.getId(), lastResponse.getResponseDate());
+        return new SurveyResponseResponseDTO(lastResponse.getId(), survey.getId());
+    }
+
+    private void processQuestionResponses(Survey survey, List<SurveyResponseRequestDTO.QuestionResponseDTO> questionResponses) {
+        for (SurveyResponseRequestDTO.QuestionResponseDTO questionResponse : questionResponses) {
+            Question question = questionRepository.findById(questionResponse.getQuestionId())
+                                                  .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+
+            SurveyResponse surveyResponse = new SurveyResponse();
+            surveyResponse.setSurvey(survey);
+            surveyResponse.setQuestion(question);
+            surveyResponse.setResponseDate(LocalDateTime.now());
+
+            // answer 처리
+            Object answer = questionResponse.getAnswer();
+            if (answer instanceof Integer) {
+                surveyResponse.setSatisfactionScore((Integer) answer); // 점수는 숫자로 처리
+            } else if (answer instanceof String) {
+                surveyResponse.setMessagesToDietitian((String) answer); // 메시지는 문자열로 처리
+            } else if (answer instanceof List) {
+                surveyResponse.setDesiredMenus((List<String>) answer); // 메뉴 리스트 처리
+            } else {
+                throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+            }
+
+            surveyResponseRepository.save(surveyResponse);
+        }
     }
 
 
