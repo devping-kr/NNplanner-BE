@@ -399,12 +399,18 @@ public class SurveyService {
             survey.setState(requestDTO.getState());
         }
 
-        // 질문 수정
+        // 추가 질문만 수정
         if (requestDTO.getQuestions() != null && !requestDTO.getQuestions().isEmpty()) {
             for (QuestionUpdateRequestDTO questionUpdateRequest : requestDTO.getQuestions()) {
                 Question question = questionRepository.findByIdAndSurveyId(questionUpdateRequest.getQuestionId(), surveyId)
                                                       .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
+                // 필수 질문인지 확인하고, 필수 질문이면 수정 불가
+                if (question.isMandatory()) {
+                    throw new CustomException(ErrorCode.CANNOT_MODIFY_MANDATORY_QUESTION);
+                }
+
+                // 추가 질문만 수정
                 question.setQuestion(questionUpdateRequest.getQuestion());
                 question.setAnswerType(questionUpdateRequest.getAnswerType());
                 updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
