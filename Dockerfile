@@ -10,7 +10,6 @@ COPY . /app
 # Gradle 빌드를 실행 (테스트 제외)
 RUN ./gradlew build -x test
 
-# 빌드된 JAR 파일을 바로 사용 (복사할 필요 없음)
 # 빌드 결과 파일을 그대로 사용
 RUN chmod +x /app/build/libs/NNplanner-0.0.1-SNAPSHOT.jar
 
