@@ -7,17 +7,12 @@ WORKDIR /app
 # Gradle 및 소스 코드 복사
 COPY . /app
 
-# Gradle 빌드를 실행하여 JAR 파일 생성
+# Gradle 빌드를 실행 (테스트 제외)
 RUN ./gradlew build -x test
 
-# 빌드 결과 파일 리스트 확인 (디버깅용)
-RUN ls -al /app/build/libs/
-
-# 빌드된 JAR 파일을 복사
-COPY build/libs/NNplanner-0.0.1-SNAPSHOT.jar /app/app.jar
-
-# JAR 파일에 실행 권한 추가
-RUN chmod +x /app/app.jar
+# 빌드된 JAR 파일을 바로 사용 (복사할 필요 없음)
+# 빌드 결과 파일을 그대로 사용
+RUN chmod +x /app/build/libs/NNplanner-0.0.1-SNAPSHOT.jar
 
 # 애플리케이션 실행
-CMD ["java", "-jar", "/app/app.jar"]
+CMD ["java", "-jar", "/app/build/libs/NNplanner-0.0.1-SNAPSHOT.jar"]
