@@ -10,6 +10,9 @@ COPY . /app
 # Gradle 빌드를 실행하여 JAR 파일 생성
 RUN ./gradlew build -x test
 
+# 빌드 결과 파일 리스트 확인 (디버깅용)
+RUN ls -al /app/build/libs/
+
 # 빌드된 JAR 파일을 복사
 COPY build/libs/NNplanner-0.0.1-SNAPSHOT.jar /app/app.jar
 
