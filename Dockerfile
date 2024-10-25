@@ -4,11 +4,14 @@ FROM --platform=linux/amd64 openjdk:17-jdk-slim
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# JAR 파일 복사
-COPY build/libs/NNplanner-0.0.1-SNAPSHOT.jar /app/app.jar
+# Gradle 및 소스 코드 복사
+COPY . /app
 
-# JAR 파일에 실행 권한 추가
-RUN chmod +x /app/app.jar
+# Gradle 빌드를 실행 (테스트 제외)
+RUN ./gradlew build -x test
+
+# 빌드 결과 파일을 그대로 사용
+RUN chmod +x /app/build/libs/NNplanner-0.0.1-SNAPSHOT.jar
 
 # 애플리케이션 실행
-CMD ["java", "-jar", "/app/app.jar"]
+CMD ["java", "-jar", "/app/build/libs/NNplanner-0.0.1-SNAPSHOT.jar"]
