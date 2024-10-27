@@ -19,7 +19,7 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
-            "https://port-0-nnplanner-be-2aat2llv7xzes5.sel5.cloudtype.app"
+            "http://133.186.217.69:30000"
         ));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
