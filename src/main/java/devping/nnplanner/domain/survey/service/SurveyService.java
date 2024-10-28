@@ -181,7 +181,7 @@ public class SurveyService {
 
         // 설문 생성한 사용자와 로그인한 사용자가 동일한지 확인
         if (!survey.getUser().getUserId().equals(userDetails.getUser().getUserId())) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);  // 권한이 없을 경우 예외 발생
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
         // 설문 상세 응답 DTO 구성
@@ -189,8 +189,9 @@ public class SurveyService {
         response.setSurveyName(survey.getSurveyName());
         response.setDeadline(survey.getDeadlineAt());
 
-        // 질문 목록 처리
-        List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> satisfactionDistributions = new ArrayList<>();
+        // 기본 질문과 추가 질문을 분리하여 처리
+        List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> mandatoryQuestions = new ArrayList<>();
+        List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> additionalQuestions = new ArrayList<>();
 
         for (Question question : survey.getQuestions()) {
             Long questionId = question.getId();
@@ -215,10 +216,16 @@ public class SurveyService {
                     answerType
                 );
 
-            satisfactionDistributions.add(questionDistribution);
+            // 질문 유형에 따라 분리
+            if (question.isMandatory()) {
+                mandatoryQuestions.add(questionDistribution);
+            } else {
+                additionalQuestions.add(questionDistribution);
+            }
         }
 
-        response.setSatisfactionDistributions(satisfactionDistributions);
+        response.setMandatoryQuestions(mandatoryQuestions);   // 기본 질문 리스트 설정
+        response.setAdditionalQuestions(additionalQuestions); // 추가 질문 리스트 설정
 
         // 설문에 대한 평균 점수 계산
         SurveyDetailResponseDTO.AverageScores averageScores = calculateUserAverageScores(survey.getResponses());
