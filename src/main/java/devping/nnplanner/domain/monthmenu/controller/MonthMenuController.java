@@ -122,7 +122,13 @@ public class MonthMenuController {
         @PageableDefault(page = 0, size = 3, sort = "createdAt",
             direction = Sort.Direction.DESC) Pageable pageable) {
 
-        List<FoodResponseDTO> foodResponseDTOList = monthMenuService.searchFood(foodName, pageable);
+        int correctedPage = (pageable.getPageNumber() > 0) ? pageable.getPageNumber() - 1 : 0;
+
+        Pageable updatedPageable =
+            PageRequest.of(correctedPage, pageable.getPageSize(), pageable.getSort());
+
+        List<FoodResponseDTO> foodResponseDTOList = monthMenuService.searchFood(foodName,
+            updatedPageable);
 
         return GlobalResponse.OK("음식 정보 검색 성공", foodResponseDTOList);
     }
