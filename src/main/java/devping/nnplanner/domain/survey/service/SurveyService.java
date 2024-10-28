@@ -347,12 +347,20 @@ public class SurveyService {
 
             // answer 처리
             Object answer = questionResponse.getAnswer();
-            if (answer instanceof Integer) {
-                surveyResponse.setSatisfactionScore((Integer) answer); // 점수는 숫자로 처리
-            } else if (answer instanceof String) {
-                surveyResponse.setMessagesToDietitian((String) answer); // 메시지는 문자열로 처리
-            } else if (answer instanceof List) {
-                surveyResponse.setDesiredMenus((List<String>) answer); // 메뉴 리스트 처리
+            if ("radio".equals(question.getAnswerType())) {
+                if (answer instanceof Integer) {
+                    surveyResponse.setSatisfactionScore((Integer) answer); // radio 타입에 맞는 점수로 처리
+                } else {
+                    throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+                }
+            } else if ("text".equals(question.getAnswerType())) {
+                if (answer instanceof String) {
+                    surveyResponse.setMessagesToDietitian((String) answer); // 메시지는 문자열로 처리
+                } else if (answer instanceof List) {
+                    surveyResponse.setDesiredMenus((List<String>) answer); // 메뉴 리스트 처리
+                } else {
+                    throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+                }
             } else {
                 throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
             }
