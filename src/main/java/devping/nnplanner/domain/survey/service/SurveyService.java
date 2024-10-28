@@ -347,12 +347,30 @@ public class SurveyService {
 
             // answer 처리
             Object answer = questionResponse.getAnswer();
-            if (answer instanceof Integer) {
-                surveyResponse.setSatisfactionScore((Integer) answer); // 점수는 숫자로 처리
-            } else if (answer instanceof String) {
-                surveyResponse.setMessagesToDietitian((String) answer); // 메시지는 문자열로 처리
-            } else if (answer instanceof List) {
-                surveyResponse.setDesiredMenus((List<String>) answer); // 메뉴 리스트 처리
+
+            // question의 answerType을 기준으로 응답을 저장할 필드를 구분
+            if ("radio".equals(question.getAnswerType())) {
+                if (answer instanceof Integer) {
+                    surveyResponse.setSatisfactionScore((Integer) answer); // radio 타입의 점수 저장
+                } else {
+                    throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+                }
+            } else if ("text".equals(question.getAnswerType())) {
+                // 질문에 따라 알맞은 필드에 저장
+                if ("가장 좋아하는 상위 3개 식단".equals(question.getQuestion()) && answer instanceof List) {
+                    surveyResponse.setLikedMenus((List<String>) answer);
+                } else if ("가장 싫어하는 상위 3개 식단".equals(question.getQuestion()) && answer instanceof List) {
+                    surveyResponse.setDislikedMenus((List<String>) answer);
+                } else if ("먹고 싶은 메뉴".equals(question.getQuestion()) && answer instanceof List) {
+                    surveyResponse.setDesiredMenus((List<String>) answer);
+                } else if ("영양사에게 한마디".equals(question.getQuestion()) && answer instanceof String) {
+                    surveyResponse.setMessagesToDietitian((String) answer);
+                } else if (answer instanceof String) {
+                    // 다른 텍스트 질문의 경우 textAnswer 필드에 저장
+                    surveyResponse.setMessagesToDietitian((String) answer);
+                } else {
+                    throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+                }
             } else {
                 throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
             }
