@@ -185,6 +185,7 @@ public class SurveyService {
         SurveyDetailResponseDTO response = new SurveyDetailResponseDTO();
         response.setSurveyName(survey.getSurveyName());
         response.setDeadline(survey.getDeadlineAt());
+        response.setMmId(survey.getMonthMenu().getMonthMenuId()); // month_menu_id 추가
 
         // 기본 질문과 추가 질문을 분리하여 처리
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> mandatoryQuestions = new ArrayList<>();
