@@ -199,7 +199,7 @@ public class SurveyService {
             List<String> textResponses = new ArrayList<>();
 
             if ("radio".equals(answerType) && questionText.contains("만족도 점수")) {
-                satisfactionDistribution = createDistributionForUser(survey.getResponses(), questionText);
+                satisfactionDistribution = createDistributionForMandatoryQuestions(survey.getResponses(), question);
             } else if ("text".equals(answerType)) {
                 textResponses = createTextResponseForUser(survey.getResponses(), questionText);
             }
@@ -232,8 +232,7 @@ public class SurveyService {
     }
 
 
-    // 필드 수정 방법에 따른 계산 로직 개선
-    private Map<Integer, Integer> createDistributionForUser(List<SurveyResponse> responses, String questionText) {
+    private Map<Integer, Integer> createDistributionForMandatoryQuestions(List<SurveyResponse> responses, Question question) {
         Map<Integer, Integer> distributionMap = new HashMap<>();
         for (int i = 1; i <= 10; i++) {
             distributionMap.put(i, 0);
@@ -241,22 +240,7 @@ public class SurveyService {
 
         responses.forEach(response -> {
             response.getResponseDetails().forEach(detail -> {
-                if ("월별 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("월별 만족도 점수(1~10)")) {
-                    Integer score = detail.getAnswerScore();
-                    if (score != null) {
-                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-                    }
-                } else if ("반찬 양 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("반찬 양 만족도 점수(1~10)")) {
-                    Integer score = detail.getAnswerScore();
-                    if (score != null) {
-                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-                    }
-                } else if ("위생 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("위생 만족도 점수(1~10)")) {
-                    Integer score = detail.getAnswerScore();
-                    if (score != null) {
-                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-                    }
-                } else if ("맛 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("맛 만족도 점수(1~10)")) {
+                if (detail.getQuestion().getId().equals(question.getId()) && question.isMandatory()) {
                     Integer score = detail.getAnswerScore();
                     if (score != null) {
                         distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
@@ -267,6 +251,7 @@ public class SurveyService {
 
         return distributionMap;
     }
+
 
     private List<String> createTextResponseForUser(List<SurveyResponse> responses, String questionText) {
         return responses.stream()
