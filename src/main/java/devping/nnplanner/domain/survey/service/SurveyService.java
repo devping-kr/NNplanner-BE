@@ -271,14 +271,12 @@ public class SurveyService {
     private List<String> createTextResponseForUser(List<SurveyResponse> responses, String questionText) {
         return responses.stream()
                         .flatMap(response -> response.getResponseDetails().stream()
+                                                     .filter(detail -> detail.getQuestion().getQuestion().equals(questionText))
                                                      .flatMap(detail -> {
-                                                         // answerList와 answerText를 구분하여 처리
-                                                         if (detail.getQuestion().getQuestion().equals(questionText)) {
-                                                             if (detail.getAnswerList() != null) {
-                                                                 return detail.getAnswerList().stream();
-                                                             } else if (detail.getAnswerText() != null) {
-                                                                 return Stream.of(detail.getAnswerText());
-                                                             }
+                                                         if (detail.getAnswerText() != null) {
+                                                             return Stream.of(detail.getAnswerText());
+                                                         } else if (detail.getAnswerList() != null) {
+                                                             return detail.getAnswerList().stream();
                                                          }
                                                          return Stream.empty();
                                                      })
