@@ -7,10 +7,7 @@ import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.*;
-import devping.nnplanner.domain.survey.entity.Question;
-import devping.nnplanner.domain.survey.entity.Survey;
-import devping.nnplanner.domain.survey.entity.SurveyResponse;
-import devping.nnplanner.domain.survey.entity.SurveyState;
+import devping.nnplanner.domain.survey.entity.*;
 import devping.nnplanner.domain.survey.repository.QuestionRepository;
 import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.domain.survey.repository.SurveyResponseRepository;
@@ -235,72 +232,83 @@ public class SurveyService {
     }
 
 
+    // 필드 수정 방법에 따른 계산 로직 개선
     private Map<Integer, Integer> createDistributionForUser(List<SurveyResponse> responses, String questionText) {
-        // 현재 사용자에 대한 만족도 분포를 생성하는 로직
         Map<Integer, Integer> distributionMap = new HashMap<>();
         for (int i = 1; i <= 10; i++) {
             distributionMap.put(i, 0);
         }
 
-        // 각 응답의 만족도 점수를 이용해 분포 생성
         responses.forEach(response -> {
-            if ("월별 만족도 점수(1~10)".equals(questionText) && response.getMonthlySatisfaction() != -1) {
-                Integer score = response.getMonthlySatisfaction();
-                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-            } else if ("반찬 양 만족도 점수(1~10)".equals(questionText) && response.getPortionSatisfaction() != -1) {
-                Integer score = response.getPortionSatisfaction();
-                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-            } else if ("위생 만족도 점수(1~10)".equals(questionText) && response.getHygieneSatisfaction() != -1) {
-                Integer score = response.getHygieneSatisfaction();
-                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-            } else if ("맛 만족도 점수(1~10)".equals(questionText) && response.getTasteSatisfaction() != -1) {
-                Integer score = response.getTasteSatisfaction();
-                distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-            }
+            response.getResponseDetails().forEach(detail -> {
+                if ("월별 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("월별 만족도 점수(1~10)")) {
+                    Integer score = detail.getAnswerScore();
+                    if (score != null) {
+                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+                    }
+                } else if ("반찬 양 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("반찬 양 만족도 점수(1~10)")) {
+                    Integer score = detail.getAnswerScore();
+                    if (score != null) {
+                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+                    }
+                } else if ("위생 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("위생 만족도 점수(1~10)")) {
+                    Integer score = detail.getAnswerScore();
+                    if (score != null) {
+                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+                    }
+                } else if ("맛 만족도 점수(1~10)".equals(questionText) && detail.getQuestion().getQuestion().equals("맛 만족도 점수(1~10)")) {
+                    Integer score = detail.getAnswerScore();
+                    if (score != null) {
+                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
+                    }
+                }
+            });
         });
 
         return distributionMap;
     }
 
-
     private List<String> createTextResponseForUser(List<SurveyResponse> responses, String questionText) {
         return responses.stream()
-                        .flatMap(response -> {
-                            if ("가장 좋아하는 상위 3개 식단".equals(questionText)) {
-                                // likedMenus 리스트 반환
-                                return response.getLikedMenus() != null ? response.getLikedMenus().stream() : Stream.empty();
-                            } else if ("가장 싫어하는 상위 3개 식단".equals(questionText)) {
-                                // dislikedMenus 리스트 반환
-                                return response.getDislikedMenus() != null ? response.getDislikedMenus().stream() : Stream.empty();
-                            } else if ("먹고 싶은 메뉴".equals(questionText)) {
-                                // desiredMenus 리스트 반환
-                                return response.getDesiredMenus() != null ? response.getDesiredMenus().stream() : Stream.empty();
-                            } else if ("영양사에게 한마디".equals(questionText)) {
-                                // messagesToDietitian 문자열 반환 (리스트로 감싸서 반환)
-                                return response.getMessagesToDietitian() != null ? Stream.of(response.getMessagesToDietitian()) : Stream.empty();
-                            }
-                            return Stream.empty();
-                        })
-//                        .distinct() // 중복된 응답을 제거
-                        .collect(Collectors.toList()); // 결과를 리스트로 수집
+                        .flatMap(response -> response.getResponseDetails().stream()
+                                                     .flatMap(detail -> {
+                                                         // answerList와 answerText를 구분하여 처리
+                                                         if (detail.getQuestion().getQuestion().equals(questionText)) {
+                                                             if (detail.getAnswerList() != null) {
+                                                                 return detail.getAnswerList().stream();
+                                                             } else if (detail.getAnswerText() != null) {
+                                                                 return Stream.of(detail.getAnswerText());
+                                                             }
+                                                         }
+                                                         return Stream.empty();
+                                                     })
+                        ).collect(Collectors.toList());
     }
 
 
     private SurveyDetailResponseDTO.AverageScores calculateUserAverageScores(List<SurveyResponse> responses) {
         double totalSatisfaction = responses.stream()
-                                            .mapToDouble(SurveyResponse::getMonthlySatisfaction)
+                                            .flatMap(response -> response.getResponseDetails().stream())
+                                            .filter(detail -> detail.getQuestion().getQuestion().equals("월별 만족도 점수(1~10)"))
+                                            .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
                                             .average().orElse(0.0);
 
         double portionSatisfaction = responses.stream()
-                                              .mapToDouble(SurveyResponse::getPortionSatisfaction)
+                                              .flatMap(response -> response.getResponseDetails().stream())
+                                              .filter(detail -> detail.getQuestion().getQuestion().equals("반찬 양 만족도 점수(1~10)"))
+                                              .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
                                               .average().orElse(0.0);
 
         double hygieneSatisfaction = responses.stream()
-                                              .mapToDouble(SurveyResponse::getHygieneSatisfaction)
+                                              .flatMap(response -> response.getResponseDetails().stream())
+                                              .filter(detail -> detail.getQuestion().getQuestion().equals("위생 만족도 점수(1~10)"))
+                                              .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
                                               .average().orElse(0.0);
 
         double tasteSatisfaction = responses.stream()
-                                            .mapToDouble(SurveyResponse::getTasteSatisfaction)
+                                            .flatMap(response -> response.getResponseDetails().stream())
+                                            .filter(detail -> detail.getQuestion().getQuestion().equals("맛 만족도 점수(1~10)"))
+                                            .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
                                             .average().orElse(0.0);
 
         SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
@@ -308,6 +316,7 @@ public class SurveyService {
         averageScores.setPortionSatisfaction(portionSatisfaction);
         averageScores.setHygieneSatisfaction(hygieneSatisfaction);
         averageScores.setTasteSatisfaction(tasteSatisfaction);
+
         return averageScores;
     }
 
@@ -317,66 +326,50 @@ public class SurveyService {
         Survey survey = surveyRepository.findById(surveyId)
                                         .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-        // 기본 질문 처리
-        if (surveyResponseRequestDTO.getBasicQuestions() != null) {
-            processQuestionResponses(survey, surveyResponseRequestDTO.getBasicQuestions());
-        }
+        SurveyResponse surveyResponse = new SurveyResponse(survey, LocalDateTime.now());
 
-        // 추가 질문 처리
-        if (surveyResponseRequestDTO.getAdditionalQuestions() != null) {
-            processQuestionResponses(survey, surveyResponseRequestDTO.getAdditionalQuestions());
-        }
+        // 기본 질문과 추가 질문의 응답을 각각 처리
+        surveyResponseRequestDTO.getBasicQuestions().forEach(questionResponseDTO ->
+            processQuestionResponse(survey, questionResponseDTO, surveyResponse)
+        );
 
-        SurveyResponse lastResponse = surveyResponseRepository.findTopBySurveyOrderByResponseDateDesc(survey);
-        if (lastResponse == null) {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-        }
+        surveyResponseRequestDTO.getAdditionalQuestions().forEach(questionResponseDTO ->
+            processQuestionResponse(survey, questionResponseDTO, surveyResponse)
+        );
 
-        return new SurveyResponseResponseDTO(lastResponse.getId(), survey.getId());
+        surveyResponseRepository.save(surveyResponse);
+        return new SurveyResponseResponseDTO(surveyResponse.getId(), survey.getId());
     }
 
-    private void processQuestionResponses(Survey survey, List<SurveyResponseRequestDTO.QuestionResponseDTO> questionResponses) {
-        for (SurveyResponseRequestDTO.QuestionResponseDTO questionResponse : questionResponses) {
-            Question question = questionRepository.findById(questionResponse.getQuestionId())
-                                                  .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+    private void processQuestionResponse(Survey survey, SurveyResponseRequestDTO.QuestionResponseDTO questionResponseDTO, SurveyResponse surveyResponse) {
+        Question question = questionRepository.findById(questionResponseDTO.getQuestionId())
+                                              .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
-            SurveyResponse surveyResponse = new SurveyResponse();
-            surveyResponse.setSurvey(survey);
-            surveyResponse.setQuestion(question);
-            surveyResponse.setResponseDate(LocalDateTime.now());
+        Object answer = questionResponseDTO.getAnswer();
+        String answerType = question.getAnswerType();
 
-            // answer 처리
-            Object answer = questionResponse.getAnswer();
+        // SurveyResponseDetail 객체 생성하여 응답을 저장
+        SurveyResponseDetail responseDetail = new SurveyResponseDetail();
+        responseDetail.setSurveyResponse(surveyResponse);
+        responseDetail.setQuestion(question);
 
-            // question의 answerType을 기준으로 응답을 저장할 필드를 구분
-            if ("radio".equals(question.getAnswerType())) {
-                if (answer instanceof Integer) {
-                    surveyResponse.setSatisfactionScore((Integer) answer); // radio 타입의 점수 저장
-                } else {
-                    throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
-                }
-            } else if ("text".equals(question.getAnswerType())) {
-                // 질문에 따라 알맞은 필드에 저장
-                if ("가장 좋아하는 상위 3개 식단".equals(question.getQuestion()) && answer instanceof List) {
-                    surveyResponse.setLikedMenus((List<String>) answer);
-                } else if ("가장 싫어하는 상위 3개 식단".equals(question.getQuestion()) && answer instanceof List) {
-                    surveyResponse.setDislikedMenus((List<String>) answer);
-                } else if ("먹고 싶은 메뉴".equals(question.getQuestion()) && answer instanceof List) {
-                    surveyResponse.setDesiredMenus((List<String>) answer);
-                } else if ("영양사에게 한마디".equals(question.getQuestion()) && answer instanceof String) {
-                    surveyResponse.setMessagesToDietitian((String) answer);
-                } else if (answer instanceof String) {
-                    // 다른 텍스트 질문의 경우 textAnswer 필드에 저장
-                    surveyResponse.setMessagesToDietitian((String) answer);
-                } else {
-                    throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
-                }
+        // answerType에 따라 데이터를 다른 필드에 저장
+        if ("radio".equals(answerType) && answer instanceof Integer) {
+            responseDetail.setAnswerScore((Integer) answer);  // radio 타입의 점수 저장
+        } else if ("text".equals(answerType)) {
+            if (answer instanceof String) {
+                responseDetail.setAnswerText((String) answer);  // 텍스트 응답 저장
+            } else if (answer instanceof List) {
+                responseDetail.setAnswerList((List<String>) answer);  // 리스트 응답 저장
             } else {
                 throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
             }
-
-            surveyResponseRepository.save(surveyResponse);
+        } else {
+            throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
         }
+
+        // SurveyResponse에 응답 세부 정보 추가
+        surveyResponse.addResponseDetail(responseDetail);
     }
 
 
