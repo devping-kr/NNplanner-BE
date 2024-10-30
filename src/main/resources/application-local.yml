@@ -27,7 +27,6 @@ spring:
     redis:
       port: ${REDIS_PORT}
       host: ${REDIS_HOST}
-      password: ${REDIS_PASSWORD}
 
   mail:
     host: smtp.gmail.com
@@ -54,3 +53,11 @@ api:
     key: ${SCHOOL_API_KEY}
   food:
     key: ${FOOD_API_KEY}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    root: INFO
+
+cors:
+  allowed-origins: ${URL_SERVER}
