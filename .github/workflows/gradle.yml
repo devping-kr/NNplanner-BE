@@ -50,6 +50,10 @@ jobs:
                   value: ${{secrets.LOCAL_DB_PASSWORD}}
                 - name: REDIS_HOST
                   value: ${{secrets.REDIS_HOST}}
+                - name: REDIS_PASSWORD
+                  value: ${{secrets.REDIS_PASSWORD}}
+                - name: URL_SERVER
+                  value: ${{secrets.URL_SERVER}}
               buildenv: []
               healthz: /actuator/health
             context:
