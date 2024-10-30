@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -13,6 +14,7 @@ public class SurveyDetailResponseDTO {
 
     private String surveyName;
     private LocalDateTime deadline;
+    private UUID mmId;
 
     private List<QuestionSatisfactionDistribution> mandatoryQuestions;  // 기본 질문 리스트
     private List<QuestionSatisfactionDistribution> additionalQuestions; // 추가 질문 리스트
