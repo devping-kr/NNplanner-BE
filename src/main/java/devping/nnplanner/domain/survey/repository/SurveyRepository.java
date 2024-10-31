@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
@@ -20,7 +21,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
         + "s.createdAt >= :startDate AND "
         + "s.createdAt <= :endDate AND "
         + "(:state IS NULL OR s.state = :state)")
-    Page<Survey> findSurveys(@Param("userId") Long userId,  // 파라미터 추가
+    Page<Survey> findSurveys(@Param("userId") Long userId,
                              @Param("search") String search,
                              @Param("startDate") LocalDateTime startDate,
                              @Param("endDate") LocalDateTime endDate,
@@ -29,4 +30,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
 
     List<Survey> findAllByMonthMenu_MonthMenuId(UUID monthMenuId);
+
+    Optional<Survey> findByIdAndUser_UserId(Long surveyId, Long userId);
+
 }

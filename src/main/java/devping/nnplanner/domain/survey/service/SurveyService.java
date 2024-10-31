@@ -156,14 +156,11 @@ public class SurveyService {
 
     @Transactional(readOnly = true)
     public SurveyDetailResponseDTO getSurveyDetail(UserDetailsImpl userDetails, Long surveyId) {
-        // 설문 조회
-        Survey survey = surveyRepository.findById(surveyId)
-                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+        Long userId = userDetails.getUser().getUserId();
 
-        // 설문 생성한 사용자와 로그인한 사용자가 동일한지 확인
-        if (!survey.getUser().getUserId().equals(userDetails.getUser().getUserId())) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+        // 로그인한 사용자가 생성한 설문만 조회
+        Survey survey = surveyRepository.findByIdAndUser_UserId(surveyId, userId)
+                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
         // 설문 상세 응답 DTO 구성
         SurveyDetailResponseDTO response = new SurveyDetailResponseDTO();
