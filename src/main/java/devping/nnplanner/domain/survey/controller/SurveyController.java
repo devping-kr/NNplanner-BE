@@ -34,6 +34,7 @@ public class SurveyController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<SurveyListResponseDTO>> getSurveys(
+        @AuthenticationPrincipal UserDetailsImpl userDetails,
         @RequestParam(value = "startDate", required = false) String startDateStr,
         @RequestParam(value = "endDate", required = false) String endDateStr,
         @RequestParam(value = "sort", required = false) String sort,
@@ -43,7 +44,7 @@ public class SurveyController {
         @RequestParam(value = "state", required = false) SurveyState state
     ) {
         SurveyListResponseDTO responseDTO
-            = surveyService.getSurveys(startDateStr, endDateStr, sort, page, pageSize, search, state);
+            = surveyService.getSurveys(userDetails, startDateStr, endDateStr, sort, page, pageSize, search, state);
 
         return GlobalResponse.OK("설문 목록 조회 성공", responseDTO);
     }
