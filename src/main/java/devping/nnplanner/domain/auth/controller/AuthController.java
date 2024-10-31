@@ -64,7 +64,7 @@ public class AuthController {
 
     @GetMapping("/reissue")
     public ResponseEntity<ApiResponse<AuthTokenResponseDTO>> reissueToken(
-        @RequestHeader("RefreshToken") String refreshToken) {
+        @RequestHeader("Refreshtoken") String refreshToken) {
 
         AuthTokenResponseDTO authTokenResponseDTO = authService.reissueToken(refreshToken);
 

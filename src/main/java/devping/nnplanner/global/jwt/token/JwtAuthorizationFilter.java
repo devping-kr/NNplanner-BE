@@ -80,9 +80,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private void setErrorResponse(HttpServletResponse response, ErrorCode errorCode)
         throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setStatus(errorCode.getStatus().value());
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(
-            "{\"message\": \"" + errorCode.getMessage() + "\"}");
+            "{\"status\": " + errorCode.getStatus().value() + ", " +
+                "\"message\": \"" + errorCode.getMessage() + "\"}"
+        );
     }
 }
