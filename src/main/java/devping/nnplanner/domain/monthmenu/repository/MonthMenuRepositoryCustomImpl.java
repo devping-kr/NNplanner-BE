@@ -66,7 +66,7 @@ public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom 
 
         // 정렬 적용 - pageable의 Sort 객체 활용
         OrderSpecifier<?> orderSpecifier;
-        Sort.Order sortOrder = pageable.getSort().getOrderFor("createAt");
+        Sort.Order sortOrder = pageable.getSort().getOrderFor("createdAt");
 
         // Sort 조건이 없을 경우 기본 정렬로 설정
         if (sortOrder != null) {
