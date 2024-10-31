@@ -1,6 +1,7 @@
 package devping.nnplanner.domain.monthmenu.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import devping.nnplanner.domain.menucategory.entity.QMenuCategory;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @RequiredArgsConstructor
 public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom {
@@ -62,6 +64,18 @@ public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom 
             builder.and(dateBuilder);
         }
 
+        // 정렬 적용 - pageable의 Sort 객체 활용
+        OrderSpecifier<?> orderSpecifier;
+        Sort.Order sortOrder = pageable.getSort().getOrderFor("createAt");
+
+        // Sort 조건이 없을 경우 기본 정렬로 설정
+        if (sortOrder != null) {
+            orderSpecifier =
+                sortOrder.isAscending() ? monthMenu.createdAt.asc() : monthMenu.createdAt.desc();
+        } else {
+            orderSpecifier = monthMenu.createdAt.desc(); // 기본값을 내림차순으로 설정
+        }
+
         // 페이지 데이터 조회
         List<MonthMenu> content = queryFactory
             .selectFrom(monthMenu)
@@ -72,7 +86,7 @@ public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom 
             .where(builder)
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
-            .orderBy(monthMenu.createdAt.desc())
+            .orderBy(orderSpecifier)
             .fetch();
 
         // 수정된 총 개수 조회 쿼리
