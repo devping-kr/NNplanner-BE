@@ -108,47 +108,30 @@ public class SurveyService {
 
 
     @Transactional(readOnly = true)
-    public SurveyListResponseDTO getSurveys(String startDateStr, String endDateStr,
+    public SurveyListResponseDTO getSurveys(UserDetailsImpl userDetails, String startDateStr, String endDateStr,
                                             String sort, int page, int pageSize, String search, SurveyState state) {
-        // 기본 정렬 기준 설정
-        String defaultSort = "createdAt";  // 기본적으로 createdAt 필드로 정렬
-        Sort.Direction defaultDirection = Sort.Direction.DESC;  // 기본 정렬 방향은 내림차순
+        // 기본 정렬 설정
+        String defaultSort = "createdAt";
+        Sort.Direction defaultDirection = Sort.Direction.DESC;
 
-        // sort 파라미터 처리
-        String sortField = defaultSort;
-        Sort.Direction sortDirection = defaultDirection;
+        String sortField = (sort != null && !sort.trim().isEmpty()) ? sort.split(",")[0] : defaultSort;
+        Sort.Direction sortDirection = (sort != null && sort.endsWith("asc")) ? Sort.Direction.ASC : defaultDirection;
 
-        if (sort != null && !sort.trim().isEmpty()) {
-            String[] sortParams = sort.split(",");
-            sortField = sortParams[0];  // 필드 이름 추출
-            if (sortParams.length > 1 && sortParams[1].equalsIgnoreCase("asc")) {
-                sortDirection = Sort.Direction.ASC;  // 정렬 방향이 asc이면 오름차순으로 설정
-            } else {
-                sortDirection = Sort.Direction.DESC;  // 그렇지 않으면 내림차순
-            }
-        }
-
-        // Pageable 객체 생성 시 동적으로 정렬 기준 적용
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(sortDirection, sortField));
 
-        // 날짜 문자열을 LocalDateTime으로 변환
-        LocalDateTime startDate = LocalDateTime.now().minusYears(1); // 기본 시작일은 1년 전
-        LocalDateTime endDate = LocalDateTime.now(); // 기본 종료일은 현재 시점
+        // 날짜 처리
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        LocalDateTime startDate = (startDateStr != null && !startDateStr.isEmpty()) ? LocalDateTime.parse(startDateStr, formatter) : LocalDateTime.now().minusYears(1);
+        LocalDateTime endDate = (endDateStr != null && !endDateStr.isEmpty()) ? LocalDateTime.parse(endDateStr, formatter) : LocalDateTime.now();
 
-        if (startDateStr != null && !startDateStr.isEmpty()) {
-            startDate = LocalDateTime.parse(startDateStr, formatter);
-        }
-
-        if (endDateStr != null && !endDateStr.isEmpty()) {
-            endDate = LocalDateTime.parse(endDateStr, formatter);
-        }
-
-        // search가 null이거나 빈 값일 때 기본값 설정
         String searchValue = (search == null || search.trim().isEmpty()) ? "" : search;
+
+        // 현재 로그인한 사용자의 userId를 가져옴
+        Long userId = userDetails.getUser().getUserId();
 
         // 쿼리 실행
         Page<Survey> surveyPage = surveyRepository.findSurveys(
+            userId,  // userId 전달
             searchValue,
             startDate,
             endDate,
@@ -169,6 +152,7 @@ public class SurveyService {
 
         return new SurveyListResponseDTO(surveyPage.getTotalElements(), page, surveyPage.getTotalPages(), surveys);
     }
+
 
     @Transactional(readOnly = true)
     public SurveyDetailResponseDTO getSurveyDetail(UserDetailsImpl userDetails, Long surveyId) {
