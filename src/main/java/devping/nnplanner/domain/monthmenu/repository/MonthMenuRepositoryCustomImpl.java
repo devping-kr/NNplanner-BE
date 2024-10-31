@@ -39,10 +39,9 @@ public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom 
 
         // 카테고리로 필터링 (majorCategory, minorCategory)
         if (majorCategory != null && minorCategory != null) {
-            builder.and(monthMenu.menuCategory.majorCategory.eq(majorCategory)
-                                                            .and(
-                                                                monthMenu.menuCategory.minorCategory.eq(
-                                                                    minorCategory)));
+            builder.and(monthMenu.menuCategory.majorCategory
+                .eq(majorCategory)
+                .and(monthMenu.menuCategory.minorCategory.eq(minorCategory)));
         }
 
         // 메뉴 이름으로 필터링
@@ -50,14 +49,13 @@ public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom 
             builder.and(monthMenu.monthMenuName.containsIgnoreCase(menuName));
         }
 
-        // 날짜로 필터링 (연도와 월, 병원 및 학교 관계 테이블을 고려)
+        // 날짜로 필터링 (연도와 월)
         if (year != null && month != null) {
             BooleanBuilder dateBuilder = new BooleanBuilder();
-
             dateBuilder.or(monthMenuHospital.menuDate.year().eq(year)
                                                      .and(monthMenuHospital.menuDate.month()
-                                                                                    .eq(month)));
-            dateBuilder.or(monthMenuSchool.menuDate.year().eq(year)
+                                                                                    .eq(month)))
+                       .or(monthMenuSchool.menuDate.year().eq(year)
                                                    .and(
                                                        monthMenuSchool.menuDate.month().eq(month)));
 
@@ -67,18 +65,19 @@ public class MonthMenuRepositoryCustomImpl implements MonthMenuRepositoryCustom 
         // 페이지 데이터 조회
         List<MonthMenu> content = queryFactory
             .selectFrom(monthMenu)
-            .leftJoin(monthMenu.menuCategory, menuCategory)
-            .leftJoin(monthMenuHospital).on(monthMenuHospital.monthMenu.eq(monthMenu))
-            .leftJoin(monthMenuSchool).on(monthMenuSchool.monthMenu.eq(monthMenu))
+            .distinct() // 중복 데이터 방지
+            .leftJoin(monthMenu.menuCategory, menuCategory).fetchJoin() // 메뉴 카테고리와 페치 조인
+            .leftJoin(monthMenuHospital).on(monthMenuHospital.monthMenu.eq(monthMenu)).fetchJoin()
+            .leftJoin(monthMenuSchool).on(monthMenuSchool.monthMenu.eq(monthMenu)).fetchJoin()
             .where(builder)
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .orderBy(monthMenu.createdAt.desc())
             .fetch();
 
-        // 총 개수 조회 (null 방지)
+        // 수정된 총 개수 조회 쿼리
         Long total = queryFactory
-            .select(monthMenu.count())
+            .select(monthMenu.monthMenuId.countDistinct())
             .from(monthMenu)
             .leftJoin(monthMenu.menuCategory, menuCategory)
             .leftJoin(monthMenuHospital).on(monthMenuHospital.monthMenu.eq(monthMenu))
