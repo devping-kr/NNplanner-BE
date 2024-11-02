@@ -82,6 +82,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         throws IOException {
         response.setStatus(errorCode.getStatus().value());
         response.setContentType("application/json;charset=UTF-8");
+
+        // CORS 헤더 추가
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "*");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+
         response.getWriter().write(
             "{\"status\": " + errorCode.getStatus().value() + ", " +
                 "\"message\": \"" + errorCode.getMessage() + "\"}"
