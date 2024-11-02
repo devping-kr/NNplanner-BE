@@ -40,7 +40,7 @@ public class JwtUtil {
         return Jwts.builder()
                    .setClaims(claims)
                    .setSubject(email)
-                   .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                   .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60))
                    .signWith(getSignKey(secret), SignatureAlgorithm.HS512)
                    .compact();
     }
