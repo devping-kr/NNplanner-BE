@@ -48,24 +48,9 @@ jobs:
           sudo systemctl start docker
           sudo systemctl enable docker
           
-          # 환경변수 설정
-          export LOCAL_DB_URL="${{ secrets.LOCAL_DB_URL }}"
-          export LOCAL_DB_USER="${{ secrets.LOCAL_DB_USER }}"
-          export LOCAL_DB_PASSWORD="${{ secrets.LOCAL_DB_PASSWORD }}"
-          export LOCAL_MONGODB_URL="${{ secrets.LOCAL_MONGODB_URL }}"
-          export REDIS_HOST="${{ secrets.REDIS_HOST }}"
-          export REDIS_PORT="${{ secrets.REDIS_PORT }}"
-          export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
-          export GOOGLE_EMAIL="${{ secrets.GOOGLE_EMAIL }}"
-          export GOOGLE_PASSWORD="${{ secrets.GOOGLE_PASSWORD }}"
-          export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
-          export SCHOOL_API_KEY="${{ secrets.SCHOOL_API_KEY }}"
-          export FOOD_API_KEY="${{ secrets.FOOD_API_KEY }}"
-          export URL_SERVER="${{ secrets.URL_SERVER }}"
-          export POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
-          export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-          export POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
-
+          # Docker 소켓 권한 수정
+          sudo chmod 666 /var/run/docker.sock
+          
           # 기존 컨테이너 및 이미지 정리
           sudo docker-compose -f /home/ec2-user/docker-compose.yml down
           sudo docker rmi -f nnplanner/app:latest || true
@@ -73,8 +58,24 @@ jobs:
           # 최신 이미지 가져오기
           sudo docker pull nnplanner/app:latest
           
-          # Docker Compose로 서비스 재시작
-          sudo docker-compose -f /home/ec2-user/docker-compose.yml up -d
+          # Docker Compose로 서비스 재시작 (환경 변수 포함)
+          sudo docker-compose -f /home/ec2-user/docker-compose.yml up -d \
+            -e LOCAL_DB_URL="${{ secrets.LOCAL_DB_URL }}" \
+            -e LOCAL_DB_USER="${{ secrets.LOCAL_DB_USER }}" \
+            -e LOCAL_DB_PASSWORD="${{ secrets.LOCAL_DB_PASSWORD }}" \
+            -e LOCAL_MONGODB_URL="${{ secrets.LOCAL_MONGODB_URL }}" \
+            -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+            -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+            -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" \
+            -e GOOGLE_EMAIL="${{ secrets.GOOGLE_EMAIL }}" \
+            -e GOOGLE_PASSWORD="${{ secrets.GOOGLE_PASSWORD }}" \
+            -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
+            -e SCHOOL_API_KEY="${{ secrets.SCHOOL_API_KEY }}" \
+            -e FOOD_API_KEY="${{ secrets.FOOD_API_KEY }}" \
+            -e URL_SERVER="${{ secrets.URL_SERVER }}" \
+            -e POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+            -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            -e POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
           
           # Docker Compose로 서비스 재시작
           docker-compose -f /home/ec2-user/docker-compose.yml up -d
