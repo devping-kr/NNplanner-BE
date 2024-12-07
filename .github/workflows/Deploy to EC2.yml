@@ -35,7 +35,7 @@ jobs:
         username: ${{ secrets.EC2_USER }}  # SSH 사용자 이름
         key: ${{ secrets.EC2_KEY }}  # 개인 SSH 키
         source: ./docker-compose.yml  # 로컬에서 업로드할 파일
-        target: /home/ec2-user/docker-compose.yml  # EC2에 저장할 경로
+        target: /home/ec2-user/  # EC2에 저장할 경로
 
     - name: SSH to EC2 and deploy
       uses: appleboy/ssh-action@v0.1.7  # SSH를 사용해 EC2에 접속
