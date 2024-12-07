@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # main 브랜치에 push할 때만 실행
+      - main  # main 브랜치에 push될 때 실행
 
 jobs:
   deploy:
@@ -38,6 +38,18 @@ jobs:
           # Docker 및 Docker Compose 설치 확인
           which docker || sudo apt-get update && sudo apt-get install -y docker.io
           which docker-compose || sudo apt-get install -y docker-compose
+          
+          # 환경변수 설정
+          export LOCAL_DB_URL="${{ secrets.LOCAL_DB_URL }}"
+          export LOCAL_DB_USER="${{ secrets.LOCAL_DB_USER }}"
+          export LOCAL_DB_PASSWORD="${{ secrets.LOCAL_DB_PASSWORD }}"
+          export REDIS_HOST="${{ secrets.REDIS_HOST }}"
+          export REDIS_PORT="${{ secrets.REDIS_PORT }}"
+          export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+          export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
+          export SCHOOL_API_KEY="${{ secrets.SCHOOL_API_KEY }}"
+          export FOOD_API_KEY="${{ secrets.FOOD_API_KEY }}"
+          export URL_SERVER="${{ secrets.URL_SERVER }}"
           
           # 기존 컨테이너 및 이미지 정리
           docker-compose -f /path/to/your/docker-compose.yml down
