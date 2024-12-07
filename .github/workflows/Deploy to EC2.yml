@@ -52,7 +52,7 @@ jobs:
           sudo chmod 666 /var/run/docker.sock
           
           # 환경변수 설정
-          echo "LOCAL_DB_URL=${{ secrets.LOCAL_DB_URL }}" >> /home/ec2-user/.env
+          echo "LOCAL_DB_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}" >> /home/ec2-user/.env
           echo "LOCAL_DB_USER=${{ secrets.LOCAL_DB_USER }}" >> /home/ec2-user/.env
           echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> /home/ec2-user/.env
           echo "LOCAL_MONGODB_URL=${{ secrets.LOCAL_MONGODB_URL }}" >> /home/ec2-user/.env
@@ -65,8 +65,6 @@ jobs:
           echo "SCHOOL_API_KEY=${{ secrets.SCHOOL_API_KEY }}" >> /home/ec2-user/.env
           echo "FOOD_API_KEY=${{ secrets.FOOD_API_KEY }}" >> /home/ec2-user/.env
           echo "URL_SERVER=${{ secrets.URL_SERVER }}" >> /home/ec2-user/.env
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> /home/ec2-user/.env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> /home/ec2-user/.env
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> /home/ec2-user/.env
 
           # 기존 컨테이너 및 이미지 정리
