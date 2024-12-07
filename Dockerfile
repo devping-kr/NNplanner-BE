@@ -1,11 +1,8 @@
 # 플랫폼을 지정하여 빌드
-FROM openjdk:11-jdk
+FROM openjdk:17-jdk-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app
-
-# Gradle Wrapper 실행 권한 부여
-RUN chmod +x gradlew
 
 # Gradle 및 소스 코드 복사
 COPY . /app
