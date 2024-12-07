@@ -28,6 +28,15 @@ jobs:
         docker build -t nnplanner/app:latest .
         docker push nnplanner/app:latest
 
+    - name: Upload Docker Compose file to EC2
+      uses: appleboy/scp-action@v0.1.7  # SCP를 사용해 docker-compose.yml 업로드
+      with:
+        host: ${{ secrets.EC2_HOST }}  # EC2 IP 주소
+        username: ${{ secrets.EC2_USER }}  # SSH 사용자 이름
+        key: ${{ secrets.EC2_KEY }}  # 개인 SSH 키
+        source: ./docker-compose.yml  # 로컬에서 업로드할 파일
+        target: /home/ec2-user/docker-compose.yml  # EC2에 저장할 경로
+
     - name: SSH to EC2 and deploy
       uses: appleboy/ssh-action@v0.1.7  # SSH를 사용해 EC2에 접속
       with:
@@ -56,13 +65,16 @@ jobs:
           export POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
           export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
           export POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
-          
+
           # 기존 컨테이너 및 이미지 정리
-          docker-compose -f /home/ec2-user/docker-compose.yml down
-          docker rmi -f nnplanner/app:latest || true
+          sudo docker-compose -f /home/ec2-user/docker-compose.yml down
+          sudo docker rmi -f nnplanner/app:latest || true
           
           # 최신 이미지 가져오기
-          docker pull nnplanner/app:latest
+          sudo docker pull nnplanner/app:latest
+          
+          # Docker Compose로 서비스 재시작
+          sudo docker-compose -f /home/ec2-user/docker-compose.yml up -d
           
           # Docker Compose로 서비스 재시작
           docker-compose -f /home/ec2-user/docker-compose.yml up -d
