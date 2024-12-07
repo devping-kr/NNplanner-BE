@@ -52,7 +52,7 @@ jobs:
           sudo chmod 666 /var/run/docker.sock
           
           # 환경변수 설정
-          echo "LOCAL_DB_URL=jdbc:postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}" >> /home/ec2-user/.env
+          echo "LOCAL_DB_URL=jdbc:postgresql://db:5432/${{ secrets.POSTGRES_DB }}" >> /home/ec2-user/.env
           echo "LOCAL_DB_USER=${{ secrets.LOCAL_DB_USER }}" >> /home/ec2-user/.env
           echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> /home/ec2-user/.env
           echo "LOCAL_MONGODB_URL=${{ secrets.LOCAL_MONGODB_URL }}" >> /home/ec2-user/.env
