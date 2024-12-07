@@ -51,28 +51,30 @@ jobs:
           # Docker 소켓 권한 수정
           sudo chmod 666 /var/run/docker.sock
           
+          # 환경변수 설정
+          echo "LOCAL_DB_URL=${{ secrets.LOCAL_DB_URL }}" >> /home/ec2-user/.env
+          echo "LOCAL_DB_USER=${{ secrets.LOCAL_DB_USER }}" >> /home/ec2-user/.env
+          echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> /home/ec2-user/.env
+          echo "LOCAL_MONGODB_URL=${{ secrets.LOCAL_MONGODB_URL }}" >> /home/ec2-user/.env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> /home/ec2-user/.env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> /home/ec2-user/.env
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> /home/ec2-user/.env
+          echo "GOOGLE_EMAIL=${{ secrets.GOOGLE_EMAIL }}" >> /home/ec2-user/.env
+          echo "GOOGLE_PASSWORD=${{ secrets.GOOGLE_PASSWORD }}" >> /home/ec2-user/.env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> /home/ec2-user/.env
+          echo "SCHOOL_API_KEY=${{ secrets.SCHOOL_API_KEY }}" >> /home/ec2-user/.env
+          echo "FOOD_API_KEY=${{ secrets.FOOD_API_KEY }}" >> /home/ec2-user/.env
+          echo "URL_SERVER=${{ secrets.URL_SERVER }}" >> /home/ec2-user/.env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> /home/ec2-user/.env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> /home/ec2-user/.env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> /home/ec2-user/.env
+
           # 기존 컨테이너 및 이미지 정리
-          sudo docker-compose -f /home/ec2-user/docker-compose.yml down
+          sudo docker-compose -f /home/ec2-user/docker-compose.yml --env-file /home/ec2-user/.env down
           sudo docker rmi -f nnplanner/app:latest || true
           
           # 최신 이미지 가져오기
           sudo docker pull nnplanner/app:latest
           
-          # Docker Compose로 서비스 재시작 (환경 변수 포함)
-          sudo docker-compose -f /home/ec2-user/docker-compose.yml up -d \
-            -e LOCAL_DB_URL="${{ secrets.LOCAL_DB_URL }}" \
-            -e LOCAL_DB_USER="${{ secrets.LOCAL_DB_USER }}" \
-            -e LOCAL_DB_PASSWORD="${{ secrets.LOCAL_DB_PASSWORD }}" \
-            -e LOCAL_MONGODB_URL="${{ secrets.LOCAL_MONGODB_URL }}" \
-            -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
-            -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
-            -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" \
-            -e GOOGLE_EMAIL="${{ secrets.GOOGLE_EMAIL }}" \
-            -e GOOGLE_PASSWORD="${{ secrets.GOOGLE_PASSWORD }}" \
-            -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
-            -e SCHOOL_API_KEY="${{ secrets.SCHOOL_API_KEY }}" \
-            -e FOOD_API_KEY="${{ secrets.FOOD_API_KEY }}" \
-            -e URL_SERVER="${{ secrets.URL_SERVER }}" \
-            -e POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
-            -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
-            -e POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
+          # Docker Compose로 서비스 재시작
+          sudo docker-compose -f /home/ec2-user/docker-compose.yml --env-file /home/ec2-user/.env up -d
