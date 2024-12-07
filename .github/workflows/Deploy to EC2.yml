@@ -35,9 +35,9 @@ jobs:
         username: ${{ secrets.EC2_USER }}  # SSH 사용자 이름
         key: ${{ secrets.EC2_KEY }}  # 개인 SSH 키
         script: |
-          # Docker 및 Docker Compose 설치 확인
-          which docker || sudo apt-get update && sudo apt-get install -y docker.io
-          which docker-compose || sudo apt-get install -y docker-compose
+          # Docker 서비스 활성화
+          sudo systemctl start docker
+          sudo systemctl enable docker
           
           # 환경변수 설정
           export LOCAL_DB_URL="${{ secrets.LOCAL_DB_URL }}"
@@ -58,11 +58,11 @@ jobs:
           export POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
           
           # 기존 컨테이너 및 이미지 정리
-          docker-compose -f /path/to/your/docker-compose.yml down
+          docker-compose -f /home/ec2-user/docker-compose.yml down
           docker rmi -f nnplanner/app:latest || true
           
           # 최신 이미지 가져오기
           docker pull nnplanner/app:latest
           
           # Docker Compose로 서비스 재시작
-          docker-compose -f /path/to/your/docker-compose.yml up -d
+          docker-compose -f /home/ec2-user/docker-compose.yml up -d
