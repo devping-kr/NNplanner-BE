@@ -76,6 +76,3 @@ jobs:
             -e POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             -e POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
-          
-          # Docker Compose로 서비스 재시작
-          docker-compose -f /home/ec2-user/docker-compose.yml up -d
