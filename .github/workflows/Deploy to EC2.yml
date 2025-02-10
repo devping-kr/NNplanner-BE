@@ -25,8 +25,8 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        docker build -t nnplanner/app:latest .
-        docker push nnplanner/app:latest
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
 
     - name: Upload Docker Compose file to EC2
       uses: appleboy/scp-action@v0.1.7  # SCP를 사용해 docker-compose.yml 업로드
@@ -69,10 +69,10 @@ jobs:
 
           # 기존 컨테이너 및 이미지 정리
           sudo docker-compose -f /home/ec2-user/docker-compose.yml --env-file /home/ec2-user/.env down
-          sudo docker rmi -f nnplanner/app:latest || true
+          sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest || true
           
           # 최신 이미지 가져오기
-          sudo docker pull nnplanner/app:latest
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
           
           # Docker Compose로 서비스 재시작
           sudo docker-compose -f /home/ec2-user/docker-compose.yml --env-file /home/ec2-user/.env up -d
