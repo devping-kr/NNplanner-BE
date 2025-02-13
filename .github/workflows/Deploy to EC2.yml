@@ -65,4 +65,4 @@ jobs:
           docker pull nnplanner/app:latest
           
           # Docker Compose로 서비스 재시작
-          docker-compose -f /path/to/your/docker-compose.yml up -d
+          docker-compose -f /path/to/your/docker-compose.yml --env-file .env up -d
