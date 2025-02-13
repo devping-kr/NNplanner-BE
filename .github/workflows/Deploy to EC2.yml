@@ -40,22 +40,22 @@ jobs:
           which docker-compose || sudo apt-get install -y docker-compose
           
           # 환경변수 설정
-          export LOCAL_DB_URL="${{ secrets.LOCAL_DB_URL }}"
-          export LOCAL_DB_USER="${{ secrets.LOCAL_DB_USER }}"
-          export LOCAL_DB_PASSWORD="${{ secrets.LOCAL_DB_PASSWORD }}"
-          export LOCAL_MONGODB_URL="${{ secrets.LOCAL_MONGODB_URL }}"
-          export REDIS_HOST="${{ secrets.REDIS_HOST }}"
-          export REDIS_PORT="${{ secrets.REDIS_PORT }}"
-          export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
-          export GOOGLE_EMAIL="${{ secrets.GOOGLE_EMAIL }}"
-          export GOOGLE_PASSWORD="${{ secrets.GOOGLE_PASSWORD }}"
-          export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
-          export SCHOOL_API_KEY="${{ secrets.SCHOOL_API_KEY }}"
-          export FOOD_API_KEY="${{ secrets.FOOD_API_KEY }}"
-          export URL_SERVER="${{ secrets.URL_SERVER }}"
-          export POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
-          export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-          export POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
+          echo "LOCAL_DB_URL=${{ secrets.LOCAL_DB_URL }}" > .env
+          echo "LOCAL_DB_USER=${{ secrets.LOCAL_DB_USER }}" >> .env
+          echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> .env
+          echo "LOCAL_MONGODB_URL=${{ secrets.LOCAL_MONGODB_URL }}" >> .env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+          echo "GOOGLE_EMAIL=${{ secrets.GOOGLE_EMAIL }}" >> .env
+          echo "GOOGLE_PASSWORD=${{ secrets.GOOGLE_PASSWORD }}" >> .env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+          echo "SCHOOL_API_KEY=${{ secrets.SCHOOL_API_KEY }}" >> .env
+          echo "FOOD_API_KEY=${{ secrets.FOOD_API_KEY }}" >> .env
+          echo "URL_SERVER=${{ secrets.URL_SERVER }}" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
           
           # 기존 컨테이너 및 이미지 정리
           docker-compose -f /path/to/your/docker-compose.yml down
