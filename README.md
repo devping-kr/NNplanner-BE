@@ -71,7 +71,8 @@
 <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white">
 <img src="https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white">
 <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=Gradle&logoColor=white">
-<img src ="https://img.shields.io/badge/Oauth-EB5424?&style=for-the-badge&logo=auth0&logoColor=white"/>
+<img src ="https://img.shields.io/badge/Oauth-EB5424?&style=for-the-badge&logo=auth0&logoColor=white">
+<img src="https://img.shields.io/badge/querydsl-2379F4?style=for-the-badge&logo=querydsl&logoColor=white">
 <img src="https://img.shields.io/badge/WebClient-F1007E?style=for-the-badge&logo=WebClient&logoColor=white">
 </span>
 
@@ -93,7 +94,7 @@
 <img src="https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=Amazon%20EC2&logoColor=white">
 </span>
 
-#### Dev tools
+#### Tool
 <span>
 <img src="https://img.shields.io/badge/IntelliJ-000000?style=for-the-badge&logo=IntelliJ IDEA&logoColor=white">
 <img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=Discord&logoColor=white">
