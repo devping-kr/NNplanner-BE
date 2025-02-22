@@ -1,5 +1,7 @@
 package devping.nnplanner.global.config;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import devping.nnplanner.global.jwt.token.JwtAuthenticationFilter;
 import devping.nnplanner.global.jwt.token.JwtAuthorizationFilter;
 import devping.nnplanner.global.jwt.token.JwtUtil;
@@ -49,6 +51,7 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement((session) -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
