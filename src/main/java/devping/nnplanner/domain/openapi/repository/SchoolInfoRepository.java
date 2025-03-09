@@ -16,7 +16,7 @@ public interface SchoolInfoRepository extends JpaRepository<SchoolInfo, Long> {
 
     Optional<SchoolInfo> findBySchoolName(String schoolName);
 
-    @Query("SELECT DISTINCT s.schoolName FROM SchoolInfo s WHERE s.schoolName IS NOT NULL")
+    @Query("SELECT DISTINCT s.schoolName FROM SchoolInfo s WHERE s.schoolName IS NOT NULL ORDER BY s.schoolName ASC")
     List<String> findDistinctSchoolNames();
 
     @Query("SELECT DISTINCT s.schoolKindName FROM SchoolInfo s WHERE s.schoolKindName IS NOT NULL")
