@@ -1,9 +1,9 @@
 package devping.nnplanner.domain.monthmenu.controller;
 
-import devping.nnplanner.domain.monthmenu.dto.request.MonthCountRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.MonthCountResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuResponseDTO;
@@ -108,12 +108,12 @@ public class MonthMenuController {
     }
 
     @GetMapping("/count")
-    public ResponseEntity<ApiResponse<MonthCountRequestDTO>> countMonthMenu(
+    public ResponseEntity<ApiResponse<MonthCountResponseDTO>> countMonthMenu(
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        MonthCountRequestDTO monthCountRequestDTO = monthMenuService.countMonthMenu(userDetails);
+        MonthCountResponseDTO monthCountResponseDTO = monthMenuService.countMonthMenu(userDetails);
 
-        return GlobalResponse.OK("월별 식단 카운트 성공", monthCountRequestDTO);
+        return GlobalResponse.OK("월별 식단 카운트 성공", monthCountResponseDTO);
     }
 
     @GetMapping("/foods")

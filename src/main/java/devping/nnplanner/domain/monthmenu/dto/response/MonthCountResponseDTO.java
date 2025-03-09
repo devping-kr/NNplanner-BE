@@ -1,9 +1,9 @@
-package devping.nnplanner.domain.monthmenu.dto.request;
+package devping.nnplanner.domain.monthmenu.dto.response;
 
 import lombok.Getter;
 
 @Getter
-public class MonthCountRequestDTO {
+public class MonthCountResponseDTO {
 
     private Integer totalMenuCount;
 
@@ -11,9 +11,9 @@ public class MonthCountRequestDTO {
 
     private Integer lastMenuCount;
 
-    public MonthCountRequestDTO(Integer totalMenuCount,
-                                Integer currentMenuCount,
-                                Integer lastMenuCount) {
+    public MonthCountResponseDTO(Integer totalMenuCount,
+                                 Integer currentMenuCount,
+                                 Integer lastMenuCount) {
 
         this.totalMenuCount = totalMenuCount;
         this.currentMenuCount = currentMenuCount;
