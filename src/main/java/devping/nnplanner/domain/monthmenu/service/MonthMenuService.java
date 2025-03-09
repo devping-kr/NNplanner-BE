@@ -2,11 +2,11 @@ package devping.nnplanner.domain.monthmenu.service;
 
 import devping.nnplanner.domain.menucategory.entity.MenuCategory;
 import devping.nnplanner.domain.menucategory.repository.MenuCategoryRepository;
-import devping.nnplanner.domain.monthmenu.dto.request.MonthCountRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuAutoRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO;
 import devping.nnplanner.domain.monthmenu.dto.request.MonthMenuSaveRequestDTO.MonthMenusSave;
 import devping.nnplanner.domain.monthmenu.dto.response.FoodResponseDTO;
+import devping.nnplanner.domain.monthmenu.dto.response.MonthCountResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthFoodListResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuAutoResponseDTO;
 import devping.nnplanner.domain.monthmenu.dto.response.MonthMenuPageResponseDTO;
@@ -426,7 +426,7 @@ public class MonthMenuService {
     }
 
     @Transactional(readOnly = true)
-    public MonthCountRequestDTO countMonthMenu(UserDetailsImpl userDetails) {
+    public MonthCountResponseDTO countMonthMenu(UserDetailsImpl userDetails) {
 
         Integer totalMonthCount =
             monthMenuRepository.countByUser_UserId(userDetails.getUser().getUserId());
@@ -448,7 +448,7 @@ public class MonthMenuService {
         Integer lastMonthCount = monthMenuRepository.countByUser_UserIdAndCreatedAtBetween(
             userDetails.getUser().getUserId(), startOfLastMonth, endOfLastMonth);
 
-        return new MonthCountRequestDTO(totalMonthCount, currentMonthCount, lastMonthCount);
+        return new MonthCountResponseDTO(totalMonthCount, currentMonthCount, lastMonthCount);
     }
 
     @Transactional(readOnly = true)

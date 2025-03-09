@@ -34,6 +34,7 @@ public class HospitalMenuRepositoryCustomImpl implements HospitalMenuRepositoryC
         return queryFactory.select(hospitalMenu.hospitalMenuKind)
                            .distinct()
                            .from(hospitalMenu)
+                           .orderBy(hospitalMenu.hospitalMenuKind.asc())
                            .fetch();
     }
 }
