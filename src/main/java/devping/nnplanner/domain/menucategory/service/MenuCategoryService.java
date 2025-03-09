@@ -6,6 +6,7 @@ import devping.nnplanner.domain.openapi.repository.HospitalMenuRepository;
 import devping.nnplanner.domain.openapi.repository.SchoolInfoRepository;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -65,5 +66,13 @@ public class MenuCategoryService {
                 menuCategoryRepository.save(menuCategory);
             }
         }
+    }
+
+    public List<String> getSchoolNameSuggestions(String keyword) {
+
+        if (keyword.length() < 2) { // 최소 2글자 이상 입력해야 검색
+            return Collections.emptyList();
+        }
+        return schoolInfoRepository.searchSchoolNames(keyword, 10);
     }
 }

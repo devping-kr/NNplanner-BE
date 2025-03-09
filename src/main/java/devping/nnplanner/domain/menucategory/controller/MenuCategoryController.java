@@ -34,4 +34,13 @@ public class MenuCategoryController {
 
         return GlobalResponse.OK("메뉴 카테고리 추가 성공, 작업이 백그라운드에서 실행됩니다.", null);
     }
+
+    @GetMapping("/search-school")
+    public ResponseEntity<ApiResponse<List<String>>> searchSchoolCategories(
+        @RequestParam("keyword") String keyword) {
+
+        List<String> suggestions = menuCategoryService.getSchoolNameSuggestions(keyword);
+
+        return GlobalResponse.OK("학교 검색 성공", suggestions);
+    }
 }
