@@ -1,6 +1,10 @@
 package devping.nnplanner.domain.auth.service;
 
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
+import devping.nnplanner.domain.auth.dto.request.GoogleInfoResponseDTO;
+import devping.nnplanner.domain.auth.dto.request.GoogleRequestDTO;
+import devping.nnplanner.domain.auth.dto.request.GoogleResponseDTO;
+import devping.nnplanner.domain.auth.dto.response.AuthResponseDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
 import devping.nnplanner.domain.auth.repository.EmailRepository;
 import devping.nnplanner.domain.auth.repository.UserRepository;
@@ -11,11 +15,16 @@ import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.token.JwtUtil;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
@@ -26,6 +35,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final EmailRepository emailRepository;
     private final JwtUtil jwtUtil;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientPw;
+    @Value("${api.oauth.key}")
+    private String oauthUrl;
 
     @Transactional
     public void signUp(AuthSignRequestDTO authSignRequestDTO) {
@@ -76,5 +92,61 @@ public class AuthService {
 
         jwtUtil.deleteRefreshToken(userId, email);
         jwtUtil.logoutAccessToken(httpRequest);
+    }
+
+    public String loginUrlGoogle() {
+        return "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + googleClientId
+            + "&redirect_uri=" + oauthUrl + "/api/auths/oauth2/google"
+            + "&response_type=code&scope=email%20profile%20openid&access_type=offline";
+    }
+
+    public AuthResponseDTO loginGoogle(String authCode) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        GoogleRequestDTO googleOAuthRequestParam = GoogleRequestDTO
+            .builder()
+            .clientId(googleClientId)
+            .clientSecret(googleClientPw)
+            .code(authCode)
+            .redirectUri(oauthUrl + "/api/auths/oauth2/google")
+            .grantType("authorization_code")
+            .build();
+
+        ResponseEntity<GoogleResponseDTO> resultEntity = restTemplate.postForEntity(
+            "https://oauth2.googleapis.com/token",
+            googleOAuthRequestParam, GoogleResponseDTO.class);
+
+        String jwtToken = resultEntity.getBody().getId_token();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("id_token", jwtToken);
+
+        ResponseEntity<GoogleInfoResponseDTO> resultEntity2 = restTemplate.postForEntity(
+            "https://oauth2.googleapis.com/tokeninfo",
+            map, GoogleInfoResponseDTO.class);
+
+        String email = resultEntity2.getBody().getEmail();
+        String name = resultEntity2.getBody().getName();
+
+        if (!userRepository.existsByEmail(email)) {
+            User user = new User();
+            user.create(
+                name,
+                email,
+                null,
+                LoginType.GOOGLE);
+            userRepository.save(user);
+        }
+
+        User user = userRepository.findByEmail(email)
+                                  .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        String accessToken = jwtUtil.createAccessToken(email);
+        String refreshToken = jwtUtil.createRefreshToken(user.getUserId(), email);
+
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO(user, accessToken, refreshToken);
+
+        return authResponseDTO;
     }
 }
