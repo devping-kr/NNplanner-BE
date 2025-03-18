@@ -1,4 +1,4 @@
-package devping.nnplanner.domain.auth.entity;
+package devping.nnplanner.domain.user.entity;
 
 import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;

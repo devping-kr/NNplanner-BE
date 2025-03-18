@@ -1,6 +1,6 @@
 package devping.nnplanner.domain.auth.dto.response;
 
-import devping.nnplanner.domain.auth.entity.User;
+import devping.nnplanner.domain.user.entity.User;
 import lombok.Getter;
 
 @Getter

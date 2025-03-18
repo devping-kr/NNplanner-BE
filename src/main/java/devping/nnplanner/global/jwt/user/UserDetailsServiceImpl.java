@@ -1,8 +1,8 @@
 package devping.nnplanner.global.jwt.user;
 
 
-import devping.nnplanner.domain.auth.entity.User;
 import devping.nnplanner.domain.auth.repository.UserRepository;
+import devping.nnplanner.domain.user.entity.User;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;

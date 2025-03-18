@@ -2,10 +2,10 @@ package devping.nnplanner.domain.auth.service;
 
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
-import devping.nnplanner.domain.auth.entity.User;
-import devping.nnplanner.domain.auth.entity.User.LoginType;
 import devping.nnplanner.domain.auth.repository.EmailRepository;
 import devping.nnplanner.domain.auth.repository.UserRepository;
+import devping.nnplanner.domain.user.entity.User;
+import devping.nnplanner.domain.user.entity.User.LoginType;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.token.JwtUtil;
