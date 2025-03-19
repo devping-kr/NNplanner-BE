@@ -83,7 +83,7 @@ public class AuthController {
         return GlobalResponse.OK("유저 로그아웃 성공", null);
     }
 
-    @PostMapping("/oauth2/google")
+    @PostMapping("/oauth2/google-url")
     public ResponseEntity<ApiResponse<String>> loginUrlGoogle() {
         return GlobalResponse.OK("구글 로그인 url 리턴 성공", authService.loginUrlGoogle());
     }
