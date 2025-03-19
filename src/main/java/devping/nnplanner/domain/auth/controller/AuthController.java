@@ -88,7 +88,7 @@ public class AuthController {
         return GlobalResponse.OK("구글 로그인 url 리턴 성공", authService.loginUrlGoogle());
     }
 
-    @GetMapping("/oauth2/google")
+    @PostMapping("/oauth2/google")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> loginGoogle(
         @RequestBody @Valid GoogleLoginRequestDTO googleLoginRequestDTO) {
 
