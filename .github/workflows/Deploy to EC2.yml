@@ -66,6 +66,9 @@ jobs:
           echo "FOOD_API_KEY=${{ secrets.FOOD_API_KEY }}" >> /home/ec2-user/.env
           echo "URL_SERVER=${{ secrets.URL_SERVER }}" >> /home/ec2-user/.env
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> /home/ec2-user/.env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> /home/ec2-user/.env
+          echo "GOOGLE_CLIENT_PASSWORD=${{ secrets.GOOGLE_CLIENT_PASSWORD }}" >> /home/ec2-user/.env
+          echo "OAUTH_URL=${{ secrets.OAUTH_URL }}" >> /home/ec2-user/.env
 
           # 기존 컨테이너 및 이미지 정리
           sudo docker-compose -f /home/ec2-user/docker-compose.yml --env-file /home/ec2-user/.env down
