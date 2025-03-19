@@ -20,6 +20,9 @@ services:
       SCHOOL_API_KEY: ${SCHOOL_API_KEY}
       FOOD_API_KEY: ${FOOD_API_KEY}
       URL_SERVER: ${URL_SERVER}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_PASSWORD: ${GOOGLE_CLIENT_PASSWORD}
+      OAUTH_URL: ${OAUTH_URL}
     depends_on:
       - db
       - redis
