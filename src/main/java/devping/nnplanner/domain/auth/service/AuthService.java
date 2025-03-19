@@ -2,6 +2,7 @@ package devping.nnplanner.domain.auth.service;
 
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.GoogleInfoResponseDTO;
+import devping.nnplanner.domain.auth.dto.request.GoogleLoginRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.GoogleRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.GoogleResponseDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthResponseDTO;
@@ -96,11 +97,11 @@ public class AuthService {
 
     public String loginUrlGoogle() {
         return "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + googleClientId
-            + "&redirect_uri=" + oauthUrl + "/api/auths/oauth2/google"
+            + "&redirect_uri=" + oauthUrl
             + "&response_type=code&scope=email%20profile%20openid&access_type=offline";
     }
 
-    public AuthResponseDTO loginGoogle(String authCode) {
+    public AuthResponseDTO loginGoogle(GoogleLoginRequestDTO googleLoginRequestDTO) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -108,8 +109,8 @@ public class AuthService {
             .builder()
             .clientId(googleClientId)
             .clientSecret(googleClientPw)
-            .code(authCode)
-            .redirectUri(oauthUrl + "/api/auths/oauth2/google")
+            .code(googleLoginRequestDTO.getAuthCode())
+            .redirectUri(oauthUrl)
             .grantType("authorization_code")
             .build();
 
