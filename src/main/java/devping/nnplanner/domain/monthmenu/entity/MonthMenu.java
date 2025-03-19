@@ -1,7 +1,7 @@
 package devping.nnplanner.domain.monthmenu.entity;
 
-import devping.nnplanner.domain.auth.entity.User;
 import devping.nnplanner.domain.menucategory.entity.MenuCategory;
+import devping.nnplanner.domain.user.entity.User;
 import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

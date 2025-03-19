@@ -1,6 +1,6 @@
 package devping.nnplanner.global.jwt.user;
 
-import devping.nnplanner.domain.auth.entity.User;
+import devping.nnplanner.domain.user.entity.User;
 import java.util.Collection;
 import java.util.Collections;
 import lombok.Getter;
