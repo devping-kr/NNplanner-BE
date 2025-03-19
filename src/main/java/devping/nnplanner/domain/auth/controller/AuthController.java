@@ -3,6 +3,7 @@ package devping.nnplanner.domain.auth.controller;
 import devping.nnplanner.domain.auth.dto.request.AuthSignRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.EmailCodeRequestDTO;
 import devping.nnplanner.domain.auth.dto.request.EmailRequestDTO;
+import devping.nnplanner.domain.auth.dto.response.AuthResponseDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthTokenResponseDTO;
 import devping.nnplanner.domain.auth.service.AuthService;
 import devping.nnplanner.domain.auth.service.EmailService;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/api/auths")
@@ -79,5 +81,19 @@ public class AuthController {
         authService.logout(httpRequest, userDetails);
 
         return GlobalResponse.OK("유저 로그아웃 성공", null);
+    }
+
+    @PostMapping("/oauth2/google")
+    public ResponseEntity<ApiResponse<String>> loginUrlGoogle() {
+        return GlobalResponse.OK("구글 로그인 url 리턴 성공", authService.loginUrlGoogle());
+    }
+
+    @GetMapping("/oauth2/google")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> loginGoogle(
+        @RequestParam(value = "code") String authCode) {
+
+        AuthResponseDTO authResponseDTO = authService.loginGoogle(authCode);
+
+        return GlobalResponse.OK("구글 로그인 성공", authResponseDTO);
     }
 }

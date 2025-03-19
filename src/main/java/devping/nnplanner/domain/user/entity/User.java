@@ -1,4 +1,4 @@
-package devping.nnplanner.domain.auth.entity;
+package devping.nnplanner.domain.user.entity;
 
 import devping.nnplanner.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
@@ -30,7 +30,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)

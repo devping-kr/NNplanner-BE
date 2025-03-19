@@ -44,6 +44,17 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_PASSWORD}
+            scope:
+              - email
+              - profile
+
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
@@ -53,6 +64,8 @@ api:
     key: ${SCHOOL_API_KEY}
   food:
     key: ${FOOD_API_KEY}
+  oauth:
+    key: ${OAUTH_URL}
 
 logging:
   level:

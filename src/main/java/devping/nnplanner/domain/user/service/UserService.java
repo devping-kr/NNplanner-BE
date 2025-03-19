@@ -1,6 +1,5 @@
 package devping.nnplanner.domain.user.service;
 
-import devping.nnplanner.domain.auth.entity.User;
 import devping.nnplanner.domain.auth.repository.UserRepository;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenuHospital;
@@ -11,6 +10,7 @@ import devping.nnplanner.domain.monthmenu.repository.MonthMenuSchoolRepository;
 import devping.nnplanner.domain.survey.entity.Survey;
 import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.domain.user.dto.request.UserRequestDTO;
+import devping.nnplanner.domain.user.entity.User;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;

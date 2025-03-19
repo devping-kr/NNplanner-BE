@@ -3,7 +3,7 @@ package devping.nnplanner.global.jwt.token;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import devping.nnplanner.domain.auth.dto.request.AuthLoginRequestDTO;
 import devping.nnplanner.domain.auth.dto.response.AuthResponseDTO;
-import devping.nnplanner.domain.auth.entity.User.LoginType;
+import devping.nnplanner.domain.user.entity.User.LoginType;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import jakarta.servlet.FilterChain;

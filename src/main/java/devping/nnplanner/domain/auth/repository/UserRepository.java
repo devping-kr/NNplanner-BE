@@ -1,6 +1,6 @@
 package devping.nnplanner.domain.auth.repository;
 
-import devping.nnplanner.domain.auth.entity.User;
+import devping.nnplanner.domain.user.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
