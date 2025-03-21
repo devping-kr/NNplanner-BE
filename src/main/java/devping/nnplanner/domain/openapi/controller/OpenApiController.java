@@ -6,6 +6,7 @@ import devping.nnplanner.domain.openapi.service.OpenApiService;
 import devping.nnplanner.domain.openapi.service.SchoolInfoService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
+@Hidden
 @RequestMapping("/api/open-apis")
 @RestController
 @RequiredArgsConstructor

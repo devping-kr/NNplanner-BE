@@ -11,6 +11,7 @@ import devping.nnplanner.domain.monthmenu.service.MonthMenuService;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/month-menus")
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "MonthMenu", description = "월별 메뉴 API")
 public class MonthMenuController {
 
     private final MonthMenuService monthMenuService;

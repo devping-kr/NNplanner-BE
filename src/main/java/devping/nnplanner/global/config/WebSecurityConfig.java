@@ -68,7 +68,9 @@ public class WebSecurityConfig {
                     "/actuator/health",
                     "/",
                     "/error",
-                    "/api/surveys/{surveyId}/responses"
+                    "/api/surveys/{surveyId}/responses",
+                    "swagger-ui/**",
+                    "/api-docs/**"
                 ).permitAll()
                 .anyRequest().authenticated())
             .formLogin(AbstractAuthenticationFilterConfigurer::disable)
