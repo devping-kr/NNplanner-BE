@@ -3,21 +3,35 @@ package devping.nnplanner.domain.survey.controller;
 import devping.nnplanner.domain.survey.dto.request.SurveyRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
-import devping.nnplanner.domain.survey.dto.response.*;
+import devping.nnplanner.domain.survey.dto.response.SurveyDetailResponseDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyListResponseDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyResponseDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyResponseResponseDTO;
+import devping.nnplanner.domain.survey.dto.response.SurveyUpdateResponseDTO;
 import devping.nnplanner.domain.survey.entity.SurveyState;
 import devping.nnplanner.domain.survey.service.SurveyService;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+@RequestMapping("/api/surveys")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/surveys")
+@Tag(name = "Survey", description = "설문 API")
 public class SurveyController {
 
     private final SurveyService surveyService;
@@ -44,7 +58,8 @@ public class SurveyController {
         @RequestParam(value = "state", required = false) SurveyState state
     ) {
         SurveyListResponseDTO responseDTO
-            = surveyService.getSurveys(userDetails, startDateStr, endDateStr, sort, page, pageSize, search, state);
+            = surveyService.getSurveys(userDetails, startDateStr, endDateStr, sort, page, pageSize,
+            search, state);
 
         return GlobalResponse.OK("설문 목록 조회 성공", responseDTO);
     }
@@ -64,7 +79,8 @@ public class SurveyController {
         @PathVariable Long surveyId,
         @RequestBody @Valid SurveyResponseRequestDTO surveyResponseRequestDTO) {
 
-        SurveyResponseResponseDTO responseDTO = surveyService.submitSurveyResponse(surveyId, surveyResponseRequestDTO);
+        SurveyResponseResponseDTO responseDTO = surveyService.submitSurveyResponse(surveyId,
+            surveyResponseRequestDTO);
 
         return GlobalResponse.CREATED("설문 응답 성공", responseDTO);
     }

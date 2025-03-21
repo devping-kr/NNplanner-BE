@@ -62,37 +62,13 @@ dependencies {
     //Oauth2.0
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    //Spring Rest Docs
-    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-
-    // Spring Boot Actuator
+    //Spring Boot Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    //Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-//Spring Rest Docs
-asciidoctor {
-    dependsOn test // asciidoctor를 수행하기전 test를 수행하도록 선언
-    configurations 'asciidoctorExt'
-}
-
-tasks.register('copyApiDocument', Copy) { // 자동으로 생성된 문서를 옮겨주는 copyApiDocument task 선언
-    dependsOn asciidoctor // copyApiDocument를 수행하기전 asciidoctor를 수행하도록 선언
-    doFirst { // 작업이 실행되기전 수행하는 작업 선언
-        delete file("src/main/resources/static/docs") // 기존 문서 삭제
-    }
-    // 생성된 문서를 static/docs로 이동
-    from asciidoctor.outputDir
-    into file("src/main/resources/static/docs")
-}
-
-build {
-    dependsOn copyApiDocument // 프로젝트 빌드 전 copyApiDocument를 실행하도록 변경
-}
-
-//QueryDSL

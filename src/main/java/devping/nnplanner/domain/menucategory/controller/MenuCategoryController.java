@@ -3,6 +3,7 @@ package devping.nnplanner.domain.menucategory.controller;
 import devping.nnplanner.domain.menucategory.service.MenuCategoryService;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequestMapping("/api/menu-categories")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/menu-categories")
+@Tag(name = "MenuCategory", description = "메뉴 카테고리 API")
 public class MenuCategoryController {
 
     private final MenuCategoryService menuCategoryService;
