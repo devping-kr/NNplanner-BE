@@ -5,6 +5,7 @@ import devping.nnplanner.domain.user.service.UserService;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
 import devping.nnplanner.global.response.ApiResponse;
 import devping.nnplanner.global.response.GlobalResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequestMapping("/api/users")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
+@Tag(name = "User", description = "유저 API")
 public class UserController {
 
     private final UserService userService;
