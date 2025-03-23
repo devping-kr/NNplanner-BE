@@ -61,6 +61,11 @@ public class MonthMenuService {
     public List<MonthMenuAutoResponseDTO> createHospitalMonthMenuAuto(
         MonthMenuAutoRequestDTO requestDTO) {
 
+        if (!menuCategoryRepository.existsByMajorCategoryAndMinorCategory(
+            requestDTO.getMajorCategory(), requestDTO.getMinorCategory())) {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+
         switch (requestDTO.getMajorCategory()) {
             case "병원" -> {
 
