@@ -143,6 +143,10 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                                   .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
+        if (user.getLoginType() == LoginType.LOCAL) {
+            throw new CustomException(ErrorCode.ALREADY_EMAIL);
+        }
+
         String accessToken = jwtUtil.createAccessToken(email);
         String refreshToken = jwtUtil.createRefreshToken(user.getUserId(), email);
 
