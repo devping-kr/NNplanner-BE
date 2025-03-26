@@ -69,7 +69,7 @@ public class WebSecurityConfig {
                     "/",
                     "/error",
                     "/api/surveys/{surveyId}/responses",
-                    "swagger-ui/**",
+                    "/swagger-ui/**",
                     "/api-docs/**"
                 ).permitAll()
                 .anyRequest().authenticated())
