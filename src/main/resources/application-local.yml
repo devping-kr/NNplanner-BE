@@ -76,6 +76,8 @@ api:
     key: ${FOOD_API_KEY}
   oauth:
     key: ${OAUTH_URL}
+  swagger:
+    key: ${SWAGGER_SERVER_URL}
 
 logging:
   level:
