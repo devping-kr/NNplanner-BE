@@ -35,7 +35,7 @@ public class UserController {
 
     }
 
-    @PatchMapping("edit-pw")
+    @PatchMapping("/edit-pw")
     public ResponseEntity<ApiResponse<Void>> editPassword(
         @AuthenticationPrincipal UserDetailsImpl userDetails,
         @RequestBody UserRequestDTO userRequestDTO) {
