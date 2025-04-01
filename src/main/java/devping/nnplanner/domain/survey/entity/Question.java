@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.survey.entity;
 
+import com.fasterxml.jackson.databind.introspect.Annotated;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,5 +34,10 @@ public class Question {
         this.answerType = answerType;
         this.isMandatory = isMandatory;
         this.survey = survey;
+    }
+
+    public void reviseQuestion(final String newContent, final String answerType) {
+        this.question = newContent;
+        this.answerType = answerType;
     }
 }
