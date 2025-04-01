@@ -9,6 +9,7 @@ import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.*;
 import devping.nnplanner.domain.survey.entity.*;
 import devping.nnplanner.domain.survey.repository.QuestionRepository;
+import devping.nnplanner.domain.survey.repository.ResponseDetailRepository;
 import devping.nnplanner.domain.survey.repository.SurveyRepository;
 import devping.nnplanner.domain.survey.repository.SurveyResponseRepository;
 import devping.nnplanner.global.exception.CustomException;
@@ -39,15 +40,14 @@ public class SurveyService {
     private final SurveyResponseRepository surveyResponseRepository;
     private final MonthMenuRepository monthMenuRepository;
     private final QuestionRepository questionRepository;
+    private final ResponseDetailRepository surveyResponseDetailRepository;
 
-    public SurveyService(SurveyRepository surveyRepository,
-                         MonthMenuRepository monthMenuRepository,
-                         SurveyResponseRepository surveyResponseRepository,
-                         QuestionRepository questionRepository) {
+    public SurveyService(SurveyRepository surveyRepository, SurveyResponseRepository surveyResponseRepository, MonthMenuRepository monthMenuRepository, QuestionRepository questionRepository, ResponseDetailRepository surveyResponseDetailRepository) {
         this.surveyRepository = surveyRepository;
         this.surveyResponseRepository = surveyResponseRepository;
         this.monthMenuRepository = monthMenuRepository;
         this.questionRepository = questionRepository;
+        this.surveyResponseDetailRepository = surveyResponseDetailRepository;
     }
 
     @Transactional
@@ -324,14 +324,34 @@ public class SurveyService {
         } else if ("text".equals(answerType)) {
             if (answer instanceof String) {
                 responseDetail.setAnswerText((String) answer);  // 텍스트 응답 저장
-            } else if (answer instanceof List) {
-                responseDetail.setAnswerList((List<String>) answer);  // 리스트 응답 저장
-            } else {
-                throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+            } else if (answer instanceof List ) {
+
+                List<?> answerList = (List<?>) answer;
+
+                if (answerList.isEmpty() || answerList.get(0) == null) {
+                    // 설문내용이 없을 경우 예외를 던진다.
+                    throw new CustomException(ErrorCode.SURVEY_CONTENT_REQUIRED);
+                } else {
+                    // 첫 번째 요소의 타입에 따라 변환
+                    Object firstElement = answerList.get(0);
+
+                    // LocalDateTime 타입의 경우 문자열로 변환하여 저장
+                    if (firstElement instanceof LocalDateTime) {
+                        List<String> converted = answerList.stream().map(obj -> ((LocalDateTime) obj).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                                .collect(Collectors.toList());
+                        responseDetail.setAnswerList(converted);
+                    }
+                    // 그 외의 경우는 그대로 저장
+                    else if (firstElement instanceof String) {
+                        responseDetail.setAnswerList((List<String>) answer);  // 리스트 응답 저장
+                    }
+                }
             }
         } else {
             throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
         }
+
+        surveyResponseDetailRepository.save(responseDetail);
 
         // SurveyResponse에 응답 세부 정보 추가
         surveyResponse.addResponseDetail(responseDetail);
