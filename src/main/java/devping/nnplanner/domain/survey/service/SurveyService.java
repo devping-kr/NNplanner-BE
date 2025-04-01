@@ -388,15 +388,12 @@ public class SurveyService {
                 Question question = questionRepository.findByIdAndSurveyId(questionUpdateRequest.getQuestionId(), surveyId)
                                                       .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
-                // 필수 질문인지 확인하고, 필수 질문이면 수정 불가
-                if (question.isMandatory()) {
-                    throw new CustomException(ErrorCode.CANNOT_MODIFY_MANDATORY_QUESTION);
+                // 추가질문일 경우에만 수정
+                if (!question.isMandatory()) {
+                    question.reviseQuestion(questionUpdateRequest.getQuestion(), questionUpdateRequest.getAnswerType());
+                    updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
                 }
 
-                // 추가 질문만 수정
-                question.setQuestion(questionUpdateRequest.getQuestion());
-                question.setAnswerType(questionUpdateRequest.getAnswerType());
-                updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
             }
         }
 
