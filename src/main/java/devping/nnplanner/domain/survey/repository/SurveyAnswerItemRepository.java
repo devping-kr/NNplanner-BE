@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface SurveyAnswerItemRepository extends JpaRepository<SurveyAnswerItem, Long> {
 
-    @Query("SELECT sai FROM SurveyAnswerItem sai WHERE sai.surveyResponseDetail.id = :responseDetailId")
+    @Query("SELECT sai FROM SurveyAnswerItem sai  WHERE sai.surveyResponseDetail.id = :responseDetailId")
     List<SurveyAnswerItem> findSurveyAnswerItemByResponseDetailId(Long responseDetailId);
 
 

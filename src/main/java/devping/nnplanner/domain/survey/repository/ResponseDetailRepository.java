@@ -12,7 +12,8 @@ import java.util.Optional;
 public interface ResponseDetailRepository extends JpaRepository<SurveyResponseDetail, Long> {
 
     // 특정 SurveyResponse에 연결된 ResponseDetail 조회")
-    Optional<List<SurveyResponseDetail>> findSurveyResponseDetailBySurveyResponse(SurveyResponse surveyResponse);
+    @Query("SELECT rd FROM SurveyResponseDetail rd join fetch rd.surveyAnswerItems WHERE rd.surveyResponse.id = :surveyResponseId")
+    Optional<List<SurveyResponseDetail>> findSurveyResponseDetailBySurveyResponse(final Long surveyResponseId);
 //
 //    // 특정 질문 ID에 따라 분류된 응답 조회 예시
 //    @Query("SELECT rd FROM SurveyResponseDetail rd WHERE rd.question.id = :questionId AND rd.surveyResponse.survey.id = :surveyId")
