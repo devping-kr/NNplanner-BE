@@ -24,8 +24,11 @@ public class SurveyResponseDetail {
     private Question question;  // 질문과 연관
 
 
+    @OneToMany(mappedBy = "surveyResponseDetail", fetch = FetchType.LAZY)
+    private List<SurveyAnswerItem> surveyAnswerItems;  // 응답에 포함된 답변 항목 리스트
 
     @Builder
+
     private SurveyResponseDetail(SurveyResponse surveyResponse, Question question) {
         this.surveyResponse = surveyResponse;
         this.question = question;
