@@ -16,11 +16,11 @@ import java.util.UUID;
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
     @Query("SELECT s FROM Survey s WHERE "
-        + "s.user.userId = :userId AND "
-        + "LOWER(s.surveyName) LIKE LOWER(CONCAT('%', :search, '%')) AND "
-        + "s.createdAt >= :startDate AND "
-        + "s.createdAt <= :endDate AND "
-        + "(:state IS NULL OR s.state = :state)")
+            + "s.user.userId = :userId AND "
+            + "LOWER(s.surveyName) LIKE LOWER(CONCAT('%', :search, '%')) AND "
+            + "s.createdAt >= :startDate AND "
+            + "s.createdAt <= :endDate AND "
+            + "(:state IS NULL OR s.state = :state)")
     Page<Survey> findSurveys(@Param("userId") Long userId,
                              @Param("search") String search,
                              @Param("startDate") LocalDateTime startDate,
@@ -33,4 +33,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
     Optional<Survey> findByIdAndUser_UserId(Long surveyId, Long userId);
 
+    @Query("select s from Survey s join fetch s.questions q" +
+            " where s.id =:surveyId and s.user.userId =:userId")
+    Optional<Survey> findByIdAndUserIdWithQuestions(@Param("surveyId") Long surveyId, @Param("userId") Long userId);
 }
