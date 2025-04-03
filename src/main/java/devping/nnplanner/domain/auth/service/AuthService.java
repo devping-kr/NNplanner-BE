@@ -101,6 +101,7 @@ public class AuthService {
             + "&response_type=code&scope=email%20profile%20openid&access_type=offline";
     }
 
+    @Transactional
     public AuthResponseDTO loginGoogle(GoogleLoginRequestDTO googleLoginRequestDTO) {
 
         RestTemplate restTemplate = new RestTemplate();
