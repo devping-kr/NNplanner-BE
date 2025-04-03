@@ -58,6 +58,7 @@ public class MonthMenuService {
     private final SchoolInfoRepository schoolInfoRepository;
     private final SurveyRepository surveyRepository;
 
+    @Transactional
     public List<MonthMenuAutoResponseDTO> createHospitalMonthMenuAuto(
         MonthMenuAutoRequestDTO requestDTO) {
 
@@ -84,38 +85,24 @@ public class MonthMenuService {
                                           })
                                           .toList();
             }
-            case "학교" -> {
-
-                List<SchoolMenu> randomSchoolMenus =
-                    schoolMenuRepository.findRandomSchoolMenusBySchoolKindName(
+            case "학교", "학교명" -> {
+                List<SchoolMenu> randomSchoolMenus = switch (requestDTO.getMajorCategory()) {
+                    case "학교" -> schoolMenuRepository.findRandomSchoolMenusBySchoolKindName(
                         requestDTO.getMinorCategory(), requestDTO.getDayCount());
+                    case "학교명" -> schoolMenuRepository.findRandomSchoolMenusBySchoolName(
+                        requestDTO.getMinorCategory(), requestDTO.getDayCount());
+                    default -> throw new CustomException(ErrorCode.BAD_REQUEST);
+                };
 
                 return randomSchoolMenus.stream()
                                         .map(menu -> {
-                                            MonthMenuAutoResponseDTO monthMenuAutoResponseDTO
-                                                = new MonthMenuAutoResponseDTO();
-
-                                            monthMenuAutoResponseDTO.schoolKindName(menu);
-
-                                            return monthMenuAutoResponseDTO;
-                                        })
-                                        .toList();
-
-            }
-            case "학교명" -> {
-
-                List<SchoolMenu> randomSchoolMenus =
-                    schoolMenuRepository.findRandomSchoolMenusBySchoolName(
-                        requestDTO.getMinorCategory(), requestDTO.getDayCount());
-
-                return randomSchoolMenus.stream()
-                                        .map(menu -> {
-                                            MonthMenuAutoResponseDTO monthMenuAutoResponseDTO
-                                                = new MonthMenuAutoResponseDTO();
-
-                                            monthMenuAutoResponseDTO.schoolName(menu);
-
-                                            return monthMenuAutoResponseDTO;
+                                            MonthMenuAutoResponseDTO dto = new MonthMenuAutoResponseDTO();
+                                            if (requestDTO.getMajorCategory().equals("학교")) {
+                                                dto.schoolKindName(menu);
+                                            } else {
+                                                dto.schoolName(menu);
+                                            }
+                                            return dto;
                                         })
                                         .toList();
             }
@@ -160,60 +147,35 @@ public class MonthMenuService {
                     monthMenuHospitalRepository.save(monthMenuHospital);
                 }
             });
-            case "학교" -> requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+            case "학교", "학교명" -> requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+
+                SchoolMenu schoolMenu;
 
                 if (menuSaveDTO.getMenuId() != null) {
-
-                    SchoolMenu schoolMenu =
-                        schoolMenuRepository
-                            .findById(UUID.fromString(menuSaveDTO.getMenuId()))
-                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
-                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
-                    monthMenuSchoolRepository.save(monthMenuSchool);
-
+                    schoolMenu = schoolMenuRepository
+                        .findById(UUID.fromString(menuSaveDTO.getMenuId()))
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
                 } else {
+                    SchoolInfo schoolInfo;
 
-                    SchoolInfo schoolInfo =
-                        schoolInfoRepository
+                    if (requestDTO.getMajorCategory().equals("학교")) {
+                        schoolInfo = schoolInfoRepository
                             .findTop1BySchoolKindName(requestDTO.getMinorCategory())
                             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-                    SchoolMenu schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
-
-                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
-                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
-                    monthMenuSchoolRepository.save(monthMenuSchool);
-                }
-            });
-            case "학교명" -> requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
-
-                if (menuSaveDTO.getMenuId() != null) {
-
-                    SchoolMenu schoolMenu =
-                        schoolMenuRepository
-                            .findById(UUID.fromString(menuSaveDTO.getMenuId()))
-                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
-                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
-                    monthMenuSchoolRepository.save(monthMenuSchool);
-
-                } else {
-
-                    SchoolInfo schoolInfo =
-                        schoolInfoRepository
+                    } else {
+                        schoolInfo = schoolInfoRepository
                             .findBySchoolName(requestDTO.getMinorCategory())
                             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                    }
 
-                    SchoolMenu schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
-
-                    MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
-                    monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
-                    monthMenuSchoolRepository.save(monthMenuSchool);
+                    schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
                 }
+
+                MonthMenuSchool monthMenuSchool = new MonthMenuSchool();
+                monthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
+                monthMenuSchoolRepository.save(monthMenuSchool);
             });
+
             default -> throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
@@ -242,191 +204,185 @@ public class MonthMenuService {
     @Transactional(readOnly = true)
     public MonthMenuResponseDTO getMonthMenu(UUID monthMenuId) {
 
-        MonthMenu monthMenu =
-            monthMenuRepository.findById(monthMenuId)
-                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        MonthMenu monthMenu = monthMenuRepository.findById(monthMenuId)
+                                                 .orElseThrow(() -> new CustomException(
+                                                     ErrorCode.NOT_FOUND));
 
-        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
+        String majorCategory = monthMenu.getMenuCategory().getMajorCategory();
 
-            List<MonthMenuHospital> monthMenuHospitalList =
-                monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+        return switch (majorCategory) {
+            case "병원" -> {
+                List<MonthMenuHospital> monthMenuHospitalList =
+                    monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
 
-            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-                createHospitalMonthFoodList(monthMenuHospitalList);
+                List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+                    createHospitalMonthFoodList(monthMenuHospitalList);
 
-            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+                yield new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+            }
 
-        } else if (monthMenu.getMenuCategory().getMajorCategory().equals("학교") ||
-            monthMenu.getMenuCategory().getMajorCategory().equals("학교명")) {
+            case "학교", "학교명" -> {
+                List<MonthMenuSchool> monthMenuSchoolList =
+                    monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
 
-            List<MonthMenuSchool> monthMenuSchoolList =
-                monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+                List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
+                    createSchoolMonthFoodList(monthMenuSchoolList);
 
-            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-                createSchoolMonthFoodList(monthMenuSchoolList);
+                yield new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+            }
 
-            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
-
-        } else {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-        }
+            default -> throw new CustomException(ErrorCode.BAD_REQUEST);
+        };
     }
 
     @Transactional
     public MonthMenuResponseDTO updateMonthMenu(UUID monthMenuId,
                                                 MonthMenuSaveRequestDTO requestDTO) {
 
-        MonthMenu monthMenu =
-            monthMenuRepository.findById(monthMenuId)
-                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        MonthMenu monthMenu = monthMenuRepository.findById(monthMenuId)
+                                                 .orElseThrow(() -> new CustomException(
+                                                     ErrorCode.NOT_FOUND));
 
-        MenuCategory menuCategory =
-            menuCategoryRepository.findByMajorCategoryAndMinorCategory(
-                                      requestDTO.getMajorCategory(), requestDTO.getMinorCategory())
-                                  .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        MenuCategory menuCategory = menuCategoryRepository
+            .findByMajorCategoryAndMinorCategory(requestDTO.getMajorCategory(),
+                requestDTO.getMinorCategory())
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         monthMenu.update(menuCategory, requestDTO.getMonthMenuName());
-
         monthMenuRepository.save(monthMenu);
 
-        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
+        String majorCategory = monthMenu.getMenuCategory().getMajorCategory();
 
-            requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+        return switch (majorCategory) {
+            case "병원" -> {
+                requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+                    if (menuSaveDTO.getMenuId() == null) {
+                        MonthMenuHospital existing =
+                            monthMenuHospitalRepository
+                                .findByMonthMenu_MonthMenuIdAndMenuDate(monthMenuId,
+                                    menuSaveDTO.getMenuDate())
+                                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-                if (menuSaveDTO.getMenuId() == null) {
+                        monthMenuHospitalRepository.delete(existing);
 
-                    MonthMenuHospital monthMenuHospital =
-                        monthMenuHospitalRepository
-                            .findByMonthMenu_MonthMenuIdAndMenuDate(monthMenuId,
-                                menuSaveDTO.getMenuDate())
-                            .orElseThrow(() ->
-                                new CustomException(ErrorCode.NOT_FOUND));
+                        if (existing.getHospitalMenu().getCreatedBy() != null &&
+                            !existing.getHospitalMenu().getCreatedBy().isEmpty()) {
+                            hospitalMenuRepository.delete(existing.getHospitalMenu());
+                        }
 
-                    monthMenuHospitalRepository.delete(monthMenuHospital);
+                        HospitalMenu newHospitalMenu = createHospitalMenu(requestDTO, menuSaveDTO);
 
-                    if (monthMenuHospital.getHospitalMenu().getCreatedBy() != null
-                        && !monthMenuHospital.getHospitalMenu().getCreatedBy().isEmpty()) {
-                        hospitalMenuRepository.delete(monthMenuHospital.getHospitalMenu());
+                        MonthMenuHospital newMonthMenuHospital = new MonthMenuHospital();
+                        newMonthMenuHospital.create(menuSaveDTO.getMenuDate(), monthMenu,
+                            newHospitalMenu);
+                        monthMenuHospitalRepository.save(newMonthMenuHospital);
                     }
+                });
 
-                    HospitalMenu hospitalMenu = createHospitalMenu(requestDTO, menuSaveDTO);
+                List<MonthMenuHospital> monthMenuHospitalList =
+                    monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+                List<MonthFoodListResponseDTO> monthFoodList = createHospitalMonthFoodList(
+                    monthMenuHospitalList);
+                yield new MonthMenuResponseDTO(monthMenu, monthFoodList);
+            }
 
-                    MonthMenuHospital saveMonthMenuHospital = new MonthMenuHospital();
-                    saveMonthMenuHospital.create(
-                        menuSaveDTO.getMenuDate(), monthMenu, hospitalMenu);
-                    monthMenuHospitalRepository.save(saveMonthMenuHospital);
-                }
-            });
+            case "학교", "학교명" -> {
+                requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
+                    if (menuSaveDTO.getMenuId() == null) {
+                        MonthMenuSchool existing =
+                            monthMenuSchoolRepository
+                                .findByMonthMenu_MonthMenuIdAndMenuDate(monthMenuId,
+                                    menuSaveDTO.getMenuDate())
+                                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-            List<MonthMenuHospital> monthMenuHospitalList =
-                monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+                        SchoolInfo schoolInfo = existing.getSchoolMenu().getSchoolInfo();
 
-            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-                createHospitalMonthFoodList(monthMenuHospitalList);
+                        monthMenuSchoolRepository.delete(existing);
 
-            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
+                        if (existing.getSchoolMenu().getCreatedBy() != null &&
+                            !existing.getSchoolMenu().getCreatedBy().isEmpty()) {
+                            schoolMenuRepository.delete(existing.getSchoolMenu());
+                        }
 
-        } else if (monthMenu.getMenuCategory().getMajorCategory().equals("학교") ||
-            monthMenu.getMenuCategory().getMajorCategory().equals("학교명")) {
+                        SchoolMenu newSchoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
 
-            requestDTO.getMonthMenusSaveList().forEach(menuSaveDTO -> {
-
-                if (menuSaveDTO.getMenuId() == null) {
-
-                    MonthMenuSchool monthMenuSchool =
-                        monthMenuSchoolRepository
-                            .findByMonthMenu_MonthMenuIdAndMenuDate(monthMenuId,
-                                menuSaveDTO.getMenuDate())
-                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-                    SchoolInfo schoolInfo = monthMenuSchool.getSchoolMenu().getSchoolInfo();
-
-                    monthMenuSchoolRepository.delete(monthMenuSchool);
-
-                    if (monthMenuSchool.getSchoolMenu().getCreatedBy() != null
-                        && !monthMenuSchool.getSchoolMenu().getCreatedBy().isEmpty()) {
-                        schoolMenuRepository.delete(monthMenuSchool.getSchoolMenu());
+                        MonthMenuSchool newMonthMenuSchool = new MonthMenuSchool();
+                        newMonthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu,
+                            newSchoolMenu);
+                        monthMenuSchoolRepository.save(newMonthMenuSchool);
                     }
+                });
 
-                    SchoolMenu schoolMenu = createSchoolMenu(schoolInfo, menuSaveDTO);
+                List<MonthMenuSchool> monthMenuSchoolList =
+                    monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
+                List<MonthFoodListResponseDTO> monthFoodList = createSchoolMonthFoodList(
+                    monthMenuSchoolList);
+                yield new MonthMenuResponseDTO(monthMenu, monthFoodList);
+            }
 
-                    MonthMenuSchool saveMonthMenuSchool = new MonthMenuSchool();
-                    saveMonthMenuSchool.create(menuSaveDTO.getMenuDate(), monthMenu, schoolMenu);
-                    monthMenuSchoolRepository.save(saveMonthMenuSchool);
-                }
-            });
-
-            List<MonthMenuSchool> monthMenuSchoolList =
-                monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(monthMenuId);
-
-            List<MonthFoodListResponseDTO> monthFoodListResponseDTOS =
-                createSchoolMonthFoodList(monthMenuSchoolList);
-
-            return new MonthMenuResponseDTO(monthMenu, monthFoodListResponseDTOS);
-
-        } else {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-        }
+            default -> throw new CustomException(ErrorCode.BAD_REQUEST);
+        };
     }
 
     @Transactional
     public void deleteMonthMenu(UUID monthMenuId) {
 
-        MonthMenu monthMenu =
-            monthMenuRepository.findById(monthMenuId)
-                               .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        MonthMenu monthMenu = monthMenuRepository.findById(monthMenuId)
+                                                 .orElseThrow(() -> new CustomException(
+                                                     ErrorCode.NOT_FOUND));
 
-        List<Survey> surveys =
-            surveyRepository.findAllByMonthMenu_MonthMenuId(monthMenu.getMonthMenuId());
-
+        List<Survey> surveys = surveyRepository.findAllByMonthMenu_MonthMenuId(
+            monthMenu.getMonthMenuId());
         surveyRepository.deleteAll(surveys);
 
-        if (monthMenu.getMenuCategory().getMajorCategory().equals("병원")) {
+        String majorCategory = monthMenu.getMenuCategory().getMajorCategory();
 
-            List<MonthMenuHospital> monthMenuHospitalList =
-                monthMenuHospitalRepository
-                    .findAllByMonthMenu_MonthMenuId(monthMenu.getMonthMenuId());
+        switch (majorCategory) {
+            case "병원" -> {
+                List<MonthMenuHospital> monthMenuHospitalList =
+                    monthMenuHospitalRepository.findAllByMonthMenu_MonthMenuId(
+                        monthMenu.getMonthMenuId());
 
-            monthMenuHospitalList.forEach(monthMenuHospital -> {
+                monthMenuHospitalList.forEach(monthMenuHospital -> {
+                    HospitalMenu hospitalMenu =
+                        hospitalMenuRepository.findById(
+                                                  monthMenuHospital.getHospitalMenu().getHospitalMenuId())
+                                              .orElseThrow(
+                                                  () -> new CustomException(ErrorCode.NOT_FOUND));
 
-                HospitalMenu hospitalMenu =
-                    hospitalMenuRepository
-                        .findById(monthMenuHospital.getHospitalMenu().getHospitalMenuId())
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                    monthMenuHospitalRepository.delete(monthMenuHospital);
 
-                monthMenuHospitalRepository.delete(monthMenuHospital);
+                    if (hospitalMenu.getCreatedBy() != null) {
+                        hospitalMenuRepository.delete(hospitalMenu);
+                    }
+                });
 
-                if (hospitalMenu.getCreatedBy() != null) {
-                    hospitalMenuRepository.delete(hospitalMenu);
-                }
-            });
+                monthMenuRepository.delete(monthMenu);
+            }
 
-            monthMenuRepository.delete(monthMenu);
-        } else if (monthMenu.getMenuCategory().getMajorCategory().equals("학교") ||
-            monthMenu.getMenuCategory().getMajorCategory().equals("학교명")) {
+            case "학교", "학교명" -> {
+                List<MonthMenuSchool> monthMenuSchoolList =
+                    monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(
+                        monthMenu.getMonthMenuId());
 
-            List<MonthMenuSchool> monthMenuSchoolList =
-                monthMenuSchoolRepository.findAllByMonthMenu_MonthMenuId(
-                    monthMenu.getMonthMenuId());
+                monthMenuSchoolList.forEach(monthMenuSchool -> {
+                    SchoolMenu schoolMenu =
+                        schoolMenuRepository.findById(
+                                                monthMenuSchool.getSchoolMenu().getSchoolMenuId())
+                                            .orElseThrow(
+                                                () -> new CustomException(ErrorCode.NOT_FOUND));
 
-            monthMenuSchoolList.forEach(monthMenuSchool -> {
+                    monthMenuSchoolRepository.delete(monthMenuSchool);
 
-                SchoolMenu schoolMenu =
-                    schoolMenuRepository
-                        .findById(monthMenuSchool.getSchoolMenu().getSchoolMenuId())
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                    if (schoolMenu.getCreatedBy() != null) {
+                        schoolMenuRepository.delete(schoolMenu);
+                    }
+                });
 
-                monthMenuSchoolRepository.delete(monthMenuSchool);
+                monthMenuRepository.delete(monthMenu);
+            }
 
-                if (schoolMenu.getCreatedBy() != null) {
-                    schoolMenuRepository.delete(schoolMenu);
-                }
-            });
-
-            monthMenuRepository.delete(monthMenu);
-
-        } else {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
+            default -> throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
 
