@@ -68,6 +68,7 @@ public class MenuCategoryService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<String> getSchoolNameSuggestions(String keyword) {
 
         if (keyword.length() < 2) { // 최소 2글자 이상 입력해야 검색
