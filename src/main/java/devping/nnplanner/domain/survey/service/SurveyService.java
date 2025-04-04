@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.survey.service;
 
+import ch.qos.logback.core.joran.conditional.IfAction;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
 import devping.nnplanner.domain.survey.dto.request.QuestionUpdateRequestDTO;
@@ -8,9 +9,7 @@ import devping.nnplanner.domain.survey.dto.request.SurveyResponseRequestDTO;
 import devping.nnplanner.domain.survey.dto.request.SurveyUpdateRequestDTO;
 import devping.nnplanner.domain.survey.dto.response.*;
 import devping.nnplanner.domain.survey.entity.*;
-import devping.nnplanner.domain.survey.repository.QuestionRepository;
-import devping.nnplanner.domain.survey.repository.SurveyRepository;
-import devping.nnplanner.domain.survey.repository.SurveyResponseRepository;
+import devping.nnplanner.domain.survey.repository.*;
 import devping.nnplanner.global.exception.CustomException;
 import devping.nnplanner.global.exception.ErrorCode;
 import devping.nnplanner.global.jwt.user.UserDetailsImpl;
@@ -23,11 +22,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -39,15 +40,17 @@ public class SurveyService {
     private final SurveyResponseRepository surveyResponseRepository;
     private final MonthMenuRepository monthMenuRepository;
     private final QuestionRepository questionRepository;
+    private final ResponseDetailRepository surveyResponseDetailRepository;
+    private final SurveyAnswerItemRepository surveyAnswerItemRepository;
 
-    public SurveyService(SurveyRepository surveyRepository,
-                         MonthMenuRepository monthMenuRepository,
-                         SurveyResponseRepository surveyResponseRepository,
-                         QuestionRepository questionRepository) {
+
+    public SurveyService(SurveyRepository surveyRepository, SurveyResponseRepository surveyResponseRepository, MonthMenuRepository monthMenuRepository, QuestionRepository questionRepository, ResponseDetailRepository surveyResponseDetailRepository, SurveyAnswerItemRepository surveyAnswerItemRepository) {
         this.surveyRepository = surveyRepository;
         this.surveyResponseRepository = surveyResponseRepository;
         this.monthMenuRepository = monthMenuRepository;
         this.questionRepository = questionRepository;
+        this.surveyResponseDetailRepository = surveyResponseDetailRepository;
+        this.surveyAnswerItemRepository = surveyAnswerItemRepository;
     }
 
     @Transactional
@@ -57,10 +60,10 @@ public class SurveyService {
 
         // 월별 식단(MonthMenu)을 ID로 조회
         MonthMenu monthMenu = monthMenuRepository.findById(mmId)
-                                                 .orElseThrow(() -> {
-                                                     logger.error("MonthMenu not found for ID: {}", mmId);
-                                                     return new CustomException(ErrorCode.MONTH_MENU_NOT_FOUND);
-                                                 });
+                .orElseThrow(() -> {
+                    logger.error("MonthMenu not found for ID: {}", mmId);
+                    return new CustomException(ErrorCode.MONTH_MENU_NOT_FOUND);
+                });
 
 
         // 마감 기한 설정
@@ -84,7 +87,7 @@ public class SurveyService {
         // 추가 질문 처리
         if (requestDTO.getAdditionalQuestions() != null) {
             requestDTO.getAdditionalQuestions().forEach(q ->
-                survey.addQuestion(new Question(q.getQuestion(), q.getAnswerType(), false, survey))
+                    survey.addQuestion(new Question(q.getQuestion(), q.getAnswerType(), false, survey))
             );
         }
 
@@ -93,16 +96,16 @@ public class SurveyService {
 
         // 응답 DTO 생성
         List<SurveyResponseDTO.QuestionResponseDTO> responseQuestions
-            = savedSurvey.getQuestions().stream()
-                         .map(q -> new SurveyResponseDTO.QuestionResponseDTO(q.getQuestion(), q.getAnswerType()))
-                         .collect(Collectors.toList());
+                = savedSurvey.getQuestions().stream()
+                .map(q -> new SurveyResponseDTO.QuestionResponseDTO(q.getQuestion(), q.getAnswerType()))
+                .collect(Collectors.toList());
 
         return new SurveyResponseDTO(
-            savedSurvey.getId(),
-            savedSurvey.getMonthMenu().getMonthMenuId(),
-            savedSurvey.getCreatedAt(),
-            savedSurvey.getDeadlineAt(),
-            responseQuestions
+                savedSurvey.getId(),
+                savedSurvey.getMonthMenu().getMonthMenuId(),
+                savedSurvey.getCreatedAt(),
+                savedSurvey.getDeadlineAt(),
+                responseQuestions
         );
     }
 
@@ -131,216 +134,281 @@ public class SurveyService {
 
         // 쿼리 실행
         Page<Survey> surveyPage = surveyRepository.findSurveys(
-            userId,  // userId 전달
-            searchValue,
-            startDate,
-            endDate,
-            state,
-            pageable
+                userId,  // userId 전달
+                searchValue,
+                startDate,
+                endDate,
+                state,
+                pageable
         );
 
         // 결과 매핑
         List<SurveyListResponseDTO.SurveyItemResponseDTO> surveys
-            = surveyPage.stream()
-                        .map(survey -> new SurveyListResponseDTO.SurveyItemResponseDTO(
-                            survey.getId(),
-                            survey.getSurveyName(),
-                            survey.getCreatedAt(),
-                            survey.getDeadlineAt(),
-                            survey.getState().toString()))
-                        .collect(Collectors.toList());
+                = surveyPage.stream()
+                .map(survey -> new SurveyListResponseDTO.SurveyItemResponseDTO(
+                        survey.getId(),
+                        survey.getSurveyName(),
+                        survey.getCreatedAt(),
+                        survey.getDeadlineAt(),
+                        survey.getState().toString()))
+                .collect(Collectors.toList());
 
         return new SurveyListResponseDTO(surveyPage.getTotalElements(), page, surveyPage.getTotalPages(), surveys);
     }
 
 
-    @Transactional(readOnly = true)
+
+    @Transactional
     public SurveyDetailResponseDTO getSurveyDetail(UserDetailsImpl userDetails, Long surveyId) {
         Long userId = userDetails.getUser().getUserId();
 
-        // 로그인한 사용자가 생성한 설문만 조회
         Survey survey = surveyRepository.findByIdAndUser_UserId(surveyId, userId)
-                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-        // 설문 상세 응답 DTO 구성
-        SurveyDetailResponseDTO response = new SurveyDetailResponseDTO();
-        response.setSurveyName(survey.getSurveyName());
-        response.setDeadline(survey.getDeadlineAt());
-        response.setMmId(survey.getMonthMenu().getMonthMenuId()); // month_menu_id 추가
+        List<Question> questions = questionRepository.findAllBySurveyId(surveyId)
+                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
-        // 기본 질문과 추가 질문을 분리하여 처리
+        List<SurveyResponse> surveyResponses = surveyResponseRepository.findBySurveyId(surveyId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+
+        List<SurveyResponseDetail> details = null;
+
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> mandatoryQuestions = new ArrayList<>();
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> additionalQuestions = new ArrayList<>();
 
-        for (Question question : survey.getQuestions()) {
+        for (Question question : questions) {
             Long questionId = question.getId();
             String questionText = question.getQuestion();
             String answerType = question.getAnswerType();
 
-            Map<Integer, Integer> satisfactionDistribution = null;
+            Map<Integer, Integer> satisfactionDistribution = new HashMap<>();
             List<String> textResponses = new ArrayList<>();
 
-            if ("radio".equals(answerType) && questionText.contains("만족도 점수")) {
-                satisfactionDistribution = createDistributionForMandatoryQuestions(survey.getResponses(), question);
-            } else if ("text".equals(answerType)) {
-                textResponses = createTextResponseForUser(survey.getResponses(), questionText);
+            for (SurveyResponse response : surveyResponses) {
+                details = surveyResponseDetailRepository.findSurveyResponseDetailBySurveyResponse(response.getId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_RESPONSE_NOT_FOUND));
+
+                for (SurveyResponseDetail detail : details) {
+                    if (!detail.getQuestion().getId().equals(questionId)) continue;
+
+                    List<SurveyAnswerItem> answerItems = surveyAnswerItemRepository.findSurveyAnswerItemByResponseDetailId(detail.getId());
+                    for (SurveyAnswerItem item : answerItems) {
+                        if (item.getAnswerItemType() == AnswerItemType.RADIO && item.getAnswerScore() != null) {
+                            satisfactionDistribution.merge(item.getAnswerScore(), 1, Integer::sum);
+                        } else if (item.getAnswerItemType().equals(AnswerItemType.DATE)) {
+                            textResponses.add(item.getAnswerItem());
+                        }
+                    }
+                }
             }
 
-            SurveyDetailResponseDTO.QuestionSatisfactionDistribution questionDistribution =
-                new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
-                    questionId,
-                    questionText,
-                    satisfactionDistribution != null ? satisfactionDistribution : new HashMap<>(),
-                    textResponses,
-                    answerType
-                );
+            // 텍스트 응답 중 날짜 형식 값만 추출하여 상위 3개만 남김
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            List<String> validDates = textResponses.stream()
+                    .filter(s -> {
+                        try {
+                            LocalDate.parse(s, formatter);
+                            return true;
+                        } catch (DateTimeParseException e) {
+                            return false;
+                        }
+                    })
+                    .toList();
 
-            // 질문 유형에 따라 분리
+            if (!validDates.isEmpty()) {
+                Map<String, Long> frequency = validDates.stream()
+                        .collect(Collectors.groupingBy(s -> s, Collectors.counting()));
+                textResponses = frequency.entrySet().stream()
+                        .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                        .limit(3)
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList());
+            }
+
+            SurveyDetailResponseDTO.QuestionSatisfactionDistribution dto =
+                    new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+                            questionId,
+                            questionText,
+                            satisfactionDistribution,
+                            textResponses,
+                            answerType
+                    );
+
             if (question.isMandatory()) {
-                mandatoryQuestions.add(questionDistribution);
+                mandatoryQuestions.add(dto);
             } else {
-                additionalQuestions.add(questionDistribution);
+                additionalQuestions.add(dto);
             }
         }
 
-        response.setMandatoryQuestions(mandatoryQuestions);   // 기본 질문 리스트 설정
-        response.setAdditionalQuestions(additionalQuestions); // 추가 질문 리스트 설정
+        SurveyDetailResponseDTO response = SurveyDetailResponseDTO.builder()
+                .surveyName(survey.getSurveyName())
+                .deadline(survey.getDeadlineAt())
+                .mmId(survey.getMonthMenu().getMonthMenuId())
+                .mandatoryQuestions(mandatoryQuestions)
+                .additionalQuestions(additionalQuestions)
+                .build();
 
-        // 설문에 대한 평균 점수 계산
-        SurveyDetailResponseDTO.AverageScores averageScores = calculateUserAverageScores(survey.getResponses());
+
+        // 1. surveyResponses 루프를 돌며 answerItemType이 RADIO인 것만 수집
+        List<SurveyAnswerItem> allRadioItems = new ArrayList<>();
+
+        for (SurveyResponse surveyResponse : surveyResponses) {
+            List<SurveyResponseDetail> surveyResponseDetails = surveyResponseDetailRepository.findSurveyResponseDetailBySurveyResponse(surveyResponse.getId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_RESPONSE_NOT_FOUND));
+
+            for (SurveyResponseDetail detail : surveyResponseDetails) {
+                List<SurveyAnswerItem> items = surveyAnswerItemRepository.findSurveyAnswerItemByResponseDetailId(detail.getId());
+                for (SurveyAnswerItem item : items) {
+                    if (item.getAnswerItemType() == AnswerItemType.RADIO && item.getAnswerScore() != null) {
+                        allRadioItems.add(item);
+                    }
+                }
+            }
+        }
+
+// 2. 평균 점수 계산 함수 수정
+        SurveyDetailResponseDTO.AverageScores averageScores = calculateUserAverageScores(allRadioItems);
         response.setAverageScores(averageScores);
+
+
 
         return response;
     }
 
 
-    private Map<Integer, Integer> createDistributionForMandatoryQuestions(List<SurveyResponse> responses, Question question) {
-        Map<Integer, Integer> distributionMap = new HashMap<>();
-        for (int i = 1; i <= 10; i++) {
-            distributionMap.put(i, 0);
-        }
-
-        responses.forEach(response -> {
-            response.getResponseDetails().forEach(detail -> {
-                if (detail.getQuestion().getId().equals(question.getId()) && question.isMandatory()) {
-                    Integer score = detail.getAnswerScore();
-                    if (score != null) {
-                        distributionMap.put(score, distributionMap.getOrDefault(score, 0) + 1);
-                    }
-                }
-            });
-        });
-
-        return distributionMap;
-    }
 
 
-    private List<String> createTextResponseForUser(List<SurveyResponse> responses, String questionText) {
-        return responses.stream()
-                        .flatMap(response -> response.getResponseDetails().stream()
-                                                     .filter(detail -> detail.getQuestion().getQuestion().equals(questionText))
-                                                     .flatMap(detail -> {
-                                                         if (detail.getAnswerText() != null) {
-                                                             return Stream.of(detail.getAnswerText());
-                                                         } else if (detail.getAnswerList() != null) {
-                                                             return detail.getAnswerList().stream();
-                                                         }
-                                                         return Stream.empty();
-                                                     })
-                        ).collect(Collectors.toList());
-    }
 
-
-    private SurveyDetailResponseDTO.AverageScores calculateUserAverageScores(List<SurveyResponse> responses) {
-        double totalSatisfaction = responses.stream()
-                                            .flatMap(response -> response.getResponseDetails().stream())
-                                            .filter(detail -> detail.getQuestion().getQuestion().equals("월별 만족도 점수(1~10)"))
-                                            .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
-                                            .average().orElse(0.0);
-
-        double portionSatisfaction = responses.stream()
-                                              .flatMap(response -> response.getResponseDetails().stream())
-                                              .filter(detail -> detail.getQuestion().getQuestion().equals("반찬 양 만족도 점수(1~10)"))
-                                              .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
-                                              .average().orElse(0.0);
-
-        double hygieneSatisfaction = responses.stream()
-                                              .flatMap(response -> response.getResponseDetails().stream())
-                                              .filter(detail -> detail.getQuestion().getQuestion().equals("위생 만족도 점수(1~10)"))
-                                              .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
-                                              .average().orElse(0.0);
-
-        double tasteSatisfaction = responses.stream()
-                                            .flatMap(response -> response.getResponseDetails().stream())
-                                            .filter(detail -> detail.getQuestion().getQuestion().equals("맛 만족도 점수(1~10)"))
-                                            .mapToDouble(detail -> Optional.ofNullable(detail.getAnswerScore()).orElse(0))
-                                            .average().orElse(0.0);
+    private SurveyDetailResponseDTO.AverageScores calculateUserAverageScores(List<SurveyAnswerItem> items) {
+        Function<String, Double> scoreForQuestion = (questionText) ->
+                items.stream()
+                        .filter(i -> i.getSurveyResponseDetail().getQuestion().getQuestion().equals(questionText))
+                        .mapToDouble(i -> Optional.ofNullable(i.getAnswerScore()).orElse(0))
+                        .average()
+                        .orElse(0.0);
 
         SurveyDetailResponseDTO.AverageScores averageScores = new SurveyDetailResponseDTO.AverageScores();
-        averageScores.setTotalSatisfaction(totalSatisfaction);
-        averageScores.setPortionSatisfaction(portionSatisfaction);
-        averageScores.setHygieneSatisfaction(hygieneSatisfaction);
-        averageScores.setTasteSatisfaction(tasteSatisfaction);
-
+        averageScores.setTotalSatisfaction(scoreForQuestion.apply("월별 만족도 점수(1~10)"));
+        averageScores.setPortionSatisfaction(scoreForQuestion.apply("반찬 양 만족도 점수(1~10)"));
+        averageScores.setHygieneSatisfaction(scoreForQuestion.apply("위생 만족도 점수(1~10)"));
+        averageScores.setTasteSatisfaction(scoreForQuestion.apply("맛 만족도 점수(1~10)"));
         return averageScores;
     }
+
+
+
+
 
 
     @Transactional
     public SurveyResponseResponseDTO submitSurveyResponse(Long surveyId, SurveyResponseRequestDTO surveyResponseRequestDTO) {
         Survey survey = surveyRepository.findById(surveyId)
-                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
         SurveyResponse surveyResponse = new SurveyResponse(survey, LocalDateTime.now());
+        surveyResponseRepository.save(surveyResponse);
 
         // 기본 질문과 추가 질문의 응답을 각각 처리
         surveyResponseRequestDTO.getBasicQuestions().forEach(questionResponseDTO ->
-            processQuestionResponse(survey, questionResponseDTO, surveyResponse)
+                processQuestionResponse(survey, questionResponseDTO, surveyResponse)
         );
 
         surveyResponseRequestDTO.getAdditionalQuestions().forEach(questionResponseDTO ->
-            processQuestionResponse(survey, questionResponseDTO, surveyResponse)
+                processQuestionResponse(survey, questionResponseDTO, surveyResponse)
         );
 
-        surveyResponseRepository.save(surveyResponse);
+
         return new SurveyResponseResponseDTO(surveyResponse.getId(), survey.getId());
     }
 
     private void processQuestionResponse(Survey survey, SurveyResponseRequestDTO.QuestionResponseDTO questionResponseDTO, SurveyResponse surveyResponse) {
         Question question = questionRepository.findById(questionResponseDTO.getQuestionId())
-                                              .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+
+
+        // SurveyResponseDetail 객체 생성하여 응답을 저장
+        SurveyResponseDetail surveyResponseDetail = SurveyResponseDetail.builder()
+                .surveyResponse(surveyResponse)
+                .question(question)
+                .build();
+
+        surveyResponseDetailRepository.save(surveyResponseDetail);
+
+        surveyResponse.addResponseDetail(surveyResponseDetail);
+
 
         Object answer = questionResponseDTO.getAnswer();
         String answerType = question.getAnswerType();
 
-        // SurveyResponseDetail 객체 생성하여 응답을 저장
-        SurveyResponseDetail responseDetail = new SurveyResponseDetail();
-        responseDetail.setSurveyResponse(surveyResponse);
-        responseDetail.setQuestion(question);
-
         // answerType에 따라 데이터를 다른 필드에 저장
+
+
         if ("radio".equals(answerType) && answer instanceof Integer) {
-            responseDetail.setAnswerScore((Integer) answer);  // radio 타입의 점수 저장
+            SurveyAnswerItem surveyAnswerItem = SurveyAnswerItem.builder()
+                    .surveyResponseDetail(surveyResponseDetail)
+                    .answerScore((Integer) answer)
+                    .answerItemType(AnswerItemType.RADIO)
+                    .build();
+
+            surveyAnswerItemRepository.save(surveyAnswerItem);
+
+
         } else if ("text".equals(answerType)) {
             if (answer instanceof String) {
-                responseDetail.setAnswerText((String) answer);  // 텍스트 응답 저장
+                SurveyAnswerItem surveyAnswerItem = SurveyAnswerItem.builder()
+                        .surveyResponseDetail(surveyResponseDetail)
+                        .answerItem((String) answer)
+                        .answerItemType(AnswerItemType.TEXT)
+                        .build();
+
+                surveyAnswerItemRepository.save(surveyAnswerItem);
+
             } else if (answer instanceof List) {
-                responseDetail.setAnswerList((List<String>) answer);  // 리스트 응답 저장
-            } else {
-                throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
+
+                List<?> answerList = (List<?>) answer;
+
+                if (answerList.isEmpty() || answerList.get(0) == null) {
+                    // 설문내용이 없을 경우 예외를 던진다.
+                    throw new CustomException(ErrorCode.SURVEY_CONTENT_REQUIRED);
+                } else {
+
+                    for (Object obj : answerList) {
+                        String value = String.valueOf(obj);
+                        AnswerItemType answerItemType = isDateString(value) ? AnswerItemType.DATE : AnswerItemType.TEXT;
+                        surveyAnswerItemRepository.save(
+                                SurveyAnswerItem.builder()
+                                        .surveyResponseDetail(surveyResponseDetail)
+                                        .answerItem(value)
+                                        .answerItemType(answerItemType)
+                                        .build()
+                        );
+
+
+                    }
+
+                }
             }
         } else {
             throw new CustomException(ErrorCode.INVALID_ANSWER_TYPE);
         }
 
-        // SurveyResponse에 응답 세부 정보 추가
-        surveyResponse.addResponseDetail(responseDetail);
+
+    }
+
+    private boolean isDateString(String input) {
+        try {
+            LocalDate.parse(input);  // 기본 포맷 yyyy-MM-dd
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
 
 
     public void deleteSurvey(Long surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
-                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
         surveyRepository.delete(survey);
     }
@@ -349,21 +417,21 @@ public class SurveyService {
     // 필수 질문을 반환하는 메서드
     private List<Question> getMandatoryQuestions() {
         return List.of(
-            new Question("월별 만족도 점수(1~10)", "radio", true, null),
-            new Question("반찬 양 만족도 점수(1~10)", "radio", true, null),
-            new Question("위생 만족도 점수(1~10)", "radio", true, null),
-            new Question("맛 만족도 점수(1~10)", "radio", true, null),
-            new Question("가장 좋아하는 상위 3개 식단", "text", true, null),
-            new Question("가장 싫어하는 상위 3개 식단", "text", true, null),
-            new Question("먹고 싶은 메뉴", "text", true, null),
-            new Question("영양사에게 한마디", "text", true, null)
+                new Question("월별 만족도 점수(1~10)", "radio", true, null),
+                new Question("반찬 양 만족도 점수(1~10)", "radio", true, null),
+                new Question("위생 만족도 점수(1~10)", "radio", true, null),
+                new Question("맛 만족도 점수(1~10)", "radio", true, null),
+                new Question("가장 좋아하는 상위 3개 식단", "text", true, null),
+                new Question("가장 싫어하는 상위 3개 식단", "text", true, null),
+                new Question("먹고 싶은 메뉴", "text", true, null),
+                new Question("영양사에게 한마디", "text", true, null)
         );
     }
 
     @Transactional
     public SurveyUpdateResponseDTO updateSurvey(Long surveyId, SurveyUpdateRequestDTO requestDTO) {
         Survey survey = surveyRepository.findById(surveyId)
-                                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
         List<SurveyUpdateResponseDTO.QuestionResponseDTO> updatedQuestions = new ArrayList<>();
 
@@ -385,29 +453,38 @@ public class SurveyService {
         // 추가 질문만 수정
         if (requestDTO.getQuestions() != null && !requestDTO.getQuestions().isEmpty()) {
             for (QuestionUpdateRequestDTO questionUpdateRequest : requestDTO.getQuestions()) {
-                Question question = questionRepository.findByIdAndSurveyId(questionUpdateRequest.getQuestionId(), surveyId)
-                                                      .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
-                // 필수 질문인지 확인하고, 필수 질문이면 수정 불가
-                if (question.isMandatory()) {
-                    throw new CustomException(ErrorCode.CANNOT_MODIFY_MANDATORY_QUESTION);
+                if (questionUpdateRequest.getQuestionId() == null) {
+                    // 새로운 질문 추가
+                    Question addedQuestion = new Question(questionUpdateRequest.getQuestion(), questionUpdateRequest.getAnswerType(), false, survey);
+                     addedQuestion = questionRepository.save(addedQuestion);
+                    survey.addQuestion(addedQuestion);
+                    updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(addedQuestion.getId(), LocalDateTime.now()));
+                    continue;
                 }
 
-                // 추가 질문만 수정
-                question.setQuestion(questionUpdateRequest.getQuestion());
-                question.setAnswerType(questionUpdateRequest.getAnswerType());
-                updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
+
+
+                Question question = questionRepository.findByIdAndSurveyId(questionUpdateRequest.getQuestionId(), surveyId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+
+                // 추가질문일 경우에만 수정
+                if (!question.isMandatory()) {
+                    question.reviseQuestion(questionUpdateRequest.getQuestion(), questionUpdateRequest.getAnswerType());
+                    updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(question.getId(), LocalDateTime.now()));
+                }
+
             }
         }
 
         surveyRepository.save(survey);
 
         return new SurveyUpdateResponseDTO(
-            survey.getId(),
-            survey.getSurveyName(),
-            survey.getDeadlineAt(),
-            survey.getState(),
-            updatedQuestions
+                survey.getId(),
+                survey.getSurveyName(),
+                survey.getDeadlineAt(),
+                survey.getState(),
+                updatedQuestions
         );
     }
 

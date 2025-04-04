@@ -1,7 +1,6 @@
 package devping.nnplanner.domain.survey.dto.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
 public class SurveyDetailResponseDTO {
 
@@ -21,17 +21,37 @@ public class SurveyDetailResponseDTO {
 
     private AverageScores averageScores;
 
+    @Builder
+    private SurveyDetailResponseDTO(String surveyName, LocalDateTime deadline, UUID mmId, List<QuestionSatisfactionDistribution> mandatoryQuestions, List<QuestionSatisfactionDistribution> additionalQuestions, AverageScores averageScores) {
+        this.surveyName = surveyName;
+        this.deadline = deadline;
+        this.mmId = mmId;
+        this.mandatoryQuestions = mandatoryQuestions;
+        this.additionalQuestions = additionalQuestions;
+        this.averageScores = averageScores;
+    }
+
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class AverageScores {
         private double totalSatisfaction;
         private double portionSatisfaction;
         private double hygieneSatisfaction;
         private double tasteSatisfaction;
+
+        @Builder
+        public AverageScores(double totalSatisfaction, double portionSatisfaction, double hygieneSatisfaction, double tasteSatisfaction) {
+            this.totalSatisfaction = totalSatisfaction;
+            this.portionSatisfaction = portionSatisfaction;
+            this.hygieneSatisfaction = hygieneSatisfaction;
+            this.tasteSatisfaction = tasteSatisfaction;
+        }
     }
 
     @Getter
-    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+
     public static class QuestionSatisfactionDistribution {
         private Long questionId;
         private String questionText;
@@ -39,6 +59,7 @@ public class SurveyDetailResponseDTO {
         private List<String> textResponses; // "text" 타입 질문에 대해서만 설정됨
         private String answerType;
 
+        @Builder
         public QuestionSatisfactionDistribution(Long questionId, String questionText,
                                                 Map<Integer, Integer> radioResponses,
                                                 List<String> textResponses,
@@ -50,7 +71,8 @@ public class SurveyDetailResponseDTO {
             this.answerType = answerType;
         }
 
-        public QuestionSatisfactionDistribution(Long questionId, String questionText, String answerType) {
+        @Builder
+        private QuestionSatisfactionDistribution(Long questionId, String questionText, String answerType) {
             this.questionId = questionId;
             this.questionText = questionText;
             this.radioResponses = Map.of();
