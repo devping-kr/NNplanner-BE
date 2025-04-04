@@ -1,5 +1,6 @@
 package devping.nnplanner.domain.survey.service;
 
+import ch.qos.logback.core.joran.conditional.IfAction;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
 import devping.nnplanner.domain.survey.dto.request.QuestionUpdateRequestDTO;
@@ -452,6 +453,18 @@ public class SurveyService {
         // 추가 질문만 수정
         if (requestDTO.getQuestions() != null && !requestDTO.getQuestions().isEmpty()) {
             for (QuestionUpdateRequestDTO questionUpdateRequest : requestDTO.getQuestions()) {
+
+                if (questionUpdateRequest.getQuestionId() == null) {
+                    // 새로운 질문 추가
+                    Question addedQuestion = new Question(questionUpdateRequest.getQuestion(), questionUpdateRequest.getAnswerType(), false, survey);
+                     addedQuestion = questionRepository.save(addedQuestion);
+                    survey.addQuestion(addedQuestion);
+                    updatedQuestions.add(new SurveyUpdateResponseDTO.QuestionResponseDTO(addedQuestion.getId(), LocalDateTime.now()));
+                    continue;
+                }
+
+
+
                 Question question = questionRepository.findByIdAndSurveyId(questionUpdateRequest.getQuestionId(), surveyId)
                         .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
 
