@@ -14,7 +14,7 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     SurveyResponse findTopBySurveyOrderByResponseDateDesc(Survey survey);
 
     // 특정 Survey에 연결된 모든 SurveyResponse 조회
-    @Query("SELECT sr FROM SurveyResponse sr join fetch  sr.responseDetails  WHERE sr.survey.id = :surveyId")
+    @Query("SELECT sr FROM SurveyResponse sr  WHERE sr.survey.id = :surveyId")
     Optional<List<SurveyResponse>> findBySurveyId(final Long surveyId);
 
 
