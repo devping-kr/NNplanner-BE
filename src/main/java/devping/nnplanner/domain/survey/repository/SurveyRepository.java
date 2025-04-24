@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface SurveyRepository extends JpaRepository<Survey, Long> {
+public interface SurveyRepository extends JpaRepository<Survey, UUID> {
 
     @Query("SELECT s FROM Survey s WHERE "
             + "s.user.userId = :userId AND "
@@ -31,7 +31,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
     List<Survey> findAllByMonthMenu_MonthMenuId(UUID monthMenuId);
 
-    Optional<Survey> findByIdAndUser_UserId(Long surveyId, Long userId);
+    Optional<Survey> findByIdAndUser_UserId(UUID surveyId, Long userId);
 
     @Query("select s from Survey s join fetch s.questions q" +
             " where s.id =:surveyId and s.user.userId =:userId")

@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RequestMapping("/api/surveys")
 @RestController
 @RequiredArgsConstructor
@@ -67,7 +69,7 @@ public class SurveyController {
     @GetMapping("/{surveyId}")
     public ResponseEntity<ApiResponse<SurveyDetailResponseDTO>> getSurveyDetail(
         @AuthenticationPrincipal UserDetailsImpl userDetails,
-        @PathVariable("surveyId") Long surveyId) {
+        @PathVariable("surveyId") UUID surveyId) {
 
         SurveyDetailResponseDTO responseDTO = surveyService.getSurveyDetail(userDetails, surveyId);
 
@@ -76,7 +78,7 @@ public class SurveyController {
 
     @PostMapping("/{surveyId}/responses")
     public ResponseEntity<ApiResponse<SurveyResponseResponseDTO>> submitSurveyResponse(
-        @PathVariable Long surveyId,
+        @PathVariable UUID surveyId,
         @RequestBody @Valid SurveyResponseRequestDTO surveyResponseRequestDTO) {
 
         SurveyResponseResponseDTO responseDTO = surveyService.submitSurveyResponse(surveyId,
@@ -87,7 +89,7 @@ public class SurveyController {
 
     @PutMapping("/{surveyId}")
     public ResponseEntity<ApiResponse<SurveyUpdateResponseDTO>> updateSurvey(
-        @PathVariable Long surveyId,
+        @PathVariable UUID surveyId,
         @RequestBody @Valid SurveyUpdateRequestDTO requestDTO) {
 
         SurveyUpdateResponseDTO responseDTO = surveyService.updateSurvey(surveyId, requestDTO);
@@ -97,7 +99,7 @@ public class SurveyController {
 
     @DeleteMapping("/{surveyId}")
     public ResponseEntity<ApiResponse<Void>> deleteSurvey(
-        @PathVariable Long surveyId) {
+        @PathVariable UUID surveyId) {
 
         surveyService.deleteSurvey(surveyId);
 

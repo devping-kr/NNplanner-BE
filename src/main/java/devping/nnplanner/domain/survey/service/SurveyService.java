@@ -158,7 +158,7 @@ public class SurveyService {
 
 
     @Transactional
-    public SurveyDetailResponseDTO getSurveyDetail(UserDetailsImpl userDetails, Long surveyId) {
+    public SurveyDetailResponseDTO getSurveyDetail(UserDetailsImpl userDetails, UUID surveyId) {
         Long userId = userDetails.getUser().getUserId();
 
         Survey survey = surveyRepository.findByIdAndUser_UserId(surveyId, userId)
@@ -300,7 +300,7 @@ public class SurveyService {
 
 
     @Transactional
-    public SurveyResponseResponseDTO submitSurveyResponse(Long surveyId, SurveyResponseRequestDTO surveyResponseRequestDTO) {
+    public SurveyResponseResponseDTO submitSurveyResponse(UUID surveyId, SurveyResponseRequestDTO surveyResponseRequestDTO) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
@@ -404,7 +404,7 @@ public class SurveyService {
     }
 
 
-    public void deleteSurvey(Long surveyId) {
+    public void deleteSurvey(UUID surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
@@ -427,7 +427,7 @@ public class SurveyService {
     }
 
     @Transactional
-    public SurveyUpdateResponseDTO updateSurvey(Long surveyId, SurveyUpdateRequestDTO requestDTO) {
+    public SurveyUpdateResponseDTO updateSurvey(UUID surveyId, SurveyUpdateRequestDTO requestDTO) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
