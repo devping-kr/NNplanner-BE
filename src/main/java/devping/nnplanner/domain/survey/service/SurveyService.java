@@ -194,8 +194,6 @@ public class SurveyService {
                             satisfactionDistribution.merge(item.getAnswerScore(), 1, Integer::sum);
                         } else if (item.getAnswerItemType().equals(AnswerItemType.DATE)) {
                             textResponses.add(item.getAnswerItem());
-                        } else if (item.getAnswerItemType().equals(AnswerItemType.TEXT)) {
-                            textResponses.add(item.getAnswerItem());
                         }
                     }
                 }
