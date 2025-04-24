@@ -61,6 +61,9 @@ public class WebSecurityConfig {
                     "/api/auths/logout",
                     "/api/open-apis/recipe")
                 .authenticated()
+                .requestMatchers(HttpMethod.GET,    //
+                        "/api/surveys/{surveyId}"
+                ).permitAll()
                 .requestMatchers( // 인증x
                     "/api/auths/**",
                     "/api/open-apis/**",
