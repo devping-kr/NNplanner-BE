@@ -5,10 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-    Optional<Question> findByIdAndSurveyId(Long questionId, UUID surveyId);
+    Optional<Question> findByIdAndSurveyId(Long questionId, Long surveyId);
 
-    Optional<List<Question>> findAllBySurveyId(UUID surveyId);
+    Optional<List<Question>> findAllBySurveyId(Long surveyId);
 }

@@ -11,7 +11,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SurveyResponseDTO {
 
-    private final UUID surveyId; // 생성된 설문 ID
+    private final Long surveyId; // 생성된 설문 ID
     private final UUID mmId; // 월별 식단 ID (UUID 타입으로 수정)
     private final LocalDateTime createdAt; // 설문 생성 날짜
     private final LocalDateTime deadlineAt; // 설문 마감 기한

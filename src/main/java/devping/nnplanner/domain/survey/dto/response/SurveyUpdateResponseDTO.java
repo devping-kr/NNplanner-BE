@@ -6,13 +6,12 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
 public class SurveyUpdateResponseDTO {
 
-    private UUID surveyId;
+    private Long surveyId;
     private String surveyName;
     private LocalDateTime deadlineAt;
     private SurveyState surveyState;
@@ -31,7 +30,7 @@ public class SurveyUpdateResponseDTO {
     }
 
     // 생성자 수정
-    public SurveyUpdateResponseDTO(UUID surveyId, String surveyName, LocalDateTime deadlineAt, SurveyState surveyState, List<QuestionResponseDTO> updatedQuestions) {
+    public SurveyUpdateResponseDTO(Long surveyId, String surveyName, LocalDateTime deadlineAt, SurveyState surveyState, List<QuestionResponseDTO> updatedQuestions) {
         this.surveyId = surveyId;
         this.surveyName = surveyName;
         this.deadlineAt = deadlineAt;

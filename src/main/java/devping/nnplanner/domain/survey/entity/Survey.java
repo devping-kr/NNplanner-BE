@@ -19,8 +19,6 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,8 +30,8 @@ import lombok.Setter;
 public class Survey extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue
-    private UUID id; // UUID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "month_menu_id", nullable = false)
