@@ -1,6 +1,5 @@
 package devping.nnplanner.domain.survey.service;
 
-import ch.qos.logback.core.joran.conditional.IfAction;
 import devping.nnplanner.domain.monthmenu.entity.MonthMenu;
 import devping.nnplanner.domain.monthmenu.repository.MonthMenuRepository;
 import devping.nnplanner.domain.survey.dto.request.QuestionUpdateRequestDTO;
@@ -171,27 +170,25 @@ public class SurveyService {
         List<SurveyResponse> surveyResponses = surveyResponseRepository.findBySurveyId(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
-        List<SurveyResponseDetail> details = null;
 
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> mandatoryQuestions = new ArrayList<>();
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> additionalQuestions = new ArrayList<>();
 
         for (Question question : questions) {
-            Long questionId = question.getId();
-            String questionText = question.getQuestion();
-            String answerType = question.getAnswerType();
+                Long questionId = question.getId();
+                String questionText = question.getQuestion();
+                String answerType = question.getAnswerType();
 
-            Map<Integer, Integer> satisfactionDistribution = new HashMap<>();
-            List<String> textResponses = new ArrayList<>();
+                Map<Integer, Integer> satisfactionDistribution = new HashMap<>();
+                List<String> textResponses = new ArrayList<>();
 
             for (SurveyResponse response : surveyResponses) {
-                details = surveyResponseDetailRepository.findSurveyResponseDetailBySurveyResponse(response.getId())
-                        .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_RESPONSE_NOT_FOUND));
 
-                for (SurveyResponseDetail detail : details) {
+                for (SurveyResponseDetail detail : response.getResponseDetails()) {
                     if (!detail.getQuestion().getId().equals(questionId)) continue;
 
-                    List<SurveyAnswerItem> answerItems = surveyAnswerItemRepository.findSurveyAnswerItemByResponseDetailId(detail.getId());
+                    List<SurveyAnswerItem> answerItems = detail.getSurveyAnswerItems();
+
                     for (SurveyAnswerItem item : answerItems) {
                         if (item.getAnswerItemType() == AnswerItemType.RADIO && item.getAnswerScore() != null) {
                             satisfactionDistribution.merge(item.getAnswerScore(), 1, Integer::sum);
@@ -254,11 +251,10 @@ public class SurveyService {
         List<SurveyAnswerItem> allRadioItems = new ArrayList<>();
 
         for (SurveyResponse surveyResponse : surveyResponses) {
-            List<SurveyResponseDetail> surveyResponseDetails = surveyResponseDetailRepository.findSurveyResponseDetailBySurveyResponse(surveyResponse.getId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_RESPONSE_NOT_FOUND));
+            List<SurveyResponseDetail> surveyResponseDetails = surveyResponse.getResponseDetails();
 
             for (SurveyResponseDetail detail : surveyResponseDetails) {
-                List<SurveyAnswerItem> items = surveyAnswerItemRepository.findSurveyAnswerItemByResponseDetailId(detail.getId());
+                List<SurveyAnswerItem> items = detail.getSurveyAnswerItems();
                 for (SurveyAnswerItem item : items) {
                     if (item.getAnswerItemType() == AnswerItemType.RADIO && item.getAnswerScore() != null) {
                         allRadioItems.add(item);
@@ -267,7 +263,7 @@ public class SurveyService {
             }
         }
 
-// 2. 평균 점수 계산 함수 수정
+        // 2. 평균 점수 계산 함수 수정
         SurveyDetailResponseDTO.AverageScores averageScores = calculateUserAverageScores(allRadioItems);
         response.setAverageScores(averageScores);
 
