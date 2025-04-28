@@ -35,4 +35,6 @@ public class SurveyResponseDetail {
         this.surveyResponse = surveyResponse;
         this.question = question;
     }
+
+
 }

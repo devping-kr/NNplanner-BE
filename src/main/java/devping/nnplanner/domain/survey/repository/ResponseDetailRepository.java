@@ -3,6 +3,7 @@ package devping.nnplanner.domain.survey.repository;
 import devping.nnplanner.domain.survey.entity.SurveyResponseDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,15 @@ public interface ResponseDetailRepository extends JpaRepository<SurveyResponseDe
     Optional<List<SurveyResponseDetail>> findSurveyResponseDetails(final Long surveyResponseId, final Long questionId);
 
     Optional<List<SurveyResponseDetail>> findBySurveyResponseId(final Long surveyResponseId);
+
+    @Query("SELECT rd FROM SurveyResponseDetail rd " +
+            "JOIN FETCH rd.question q " +
+            "WHERE rd.surveyResponse.id IN :responseIds")
+    List<SurveyResponseDetail> findAllWithQuestionsByResponseIds(@Param("responseIds") List<Long> responseIds);
+
+    @Query("SELECT rd FROM SurveyResponseDetail rd WHERE rd.surveyResponse.id IN :responseIds")
+    List<SurveyResponseDetail> findResponseDetailsByResponseIds(@Param("responseIds") List<Long> responseIds);
+
 //
 //    // 특정 질문 ID에 따라 분류된 응답 조회 예시
 //    @Query("SELECT rd FROM SurveyResponseDetail rd WHERE rd.question.id = :questionId AND rd.surveyResponse.survey.id = :surveyId")

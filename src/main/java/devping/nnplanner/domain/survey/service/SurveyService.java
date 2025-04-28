@@ -157,11 +157,10 @@ public class SurveyService {
 
 
 
-    @Transactional
-    public SurveyDetailResponseDTO getSurveyDetail(UserDetailsImpl userDetails, Long surveyId) {
-        Long userId = userDetails.getUser().getUserId();
+    @Transactional(readOnly = true)
+    public SurveyDetailResponseDTO getSurveyDetail( UUID surveyId) {
 
-        Survey survey = surveyRepository.findByIdAndUser_UserId(surveyId, userId)
+        Survey survey = surveyRepository.findByIdWithUser(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
         List<Question> questions = questionRepository.findAllBySurveyId(surveyId)
@@ -169,6 +168,9 @@ public class SurveyService {
 
         List<SurveyResponse> surveyResponses = surveyResponseRepository.findBySurveyId(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+
+//        List<SurveyResponse> surveyResponses =
+//                surveyResponseRepository.findAllWithDetailsAndItemsBySurveyId(surveyId);
 
 
         List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> mandatoryQuestions = new ArrayList<>();
@@ -195,6 +197,10 @@ public class SurveyService {
                         } else if (item.getAnswerItemType().equals(AnswerItemType.DATE)) {
                             textResponses.add(item.getAnswerItem());
                         }
+                        else if (item.getAnswerItemType() == AnswerItemType.TEXT) {
+                            textResponses.add(item.getAnswerItem());
+                        }
+
                     }
                 }
             }
@@ -276,6 +282,87 @@ public class SurveyService {
 
 
 
+//    @Transactional(readOnly = true)
+//    public SurveyDetailResponseDTO getSurveyDetail(UUID surveyId) {
+//        Survey survey = surveyRepository.findByIdWithUser(surveyId)
+//                .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
+//
+//        List<Question> questions = questionRepository.findAllBySurveyId(surveyId)
+//                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+//
+//        List<SurveyResponse> surveyResponses = surveyResponseRepository.findSurveyResponses(surveyId);
+//
+//        if (surveyResponses.isEmpty()) {
+//            throw new CustomException(ErrorCode.SURVEY_RESPONSE_NOT_FOUND);
+//        }
+//
+//        List<Long> responseIds = surveyResponses.stream().map(SurveyResponse::getId).toList();
+//        List<SurveyResponseDetail> responseDetails = surveyResponseDetailRepository.findResponseDetailsByResponseIds(responseIds);
+//
+//        List<Long> detailIds = responseDetails.stream().map(SurveyResponseDetail::getId).toList();
+//        List<SurveyAnswerItem> answerItems = surveyAnswerItemRepository.findAnswerItemsByDetailIds(detailIds);
+//
+//        Map<Long, List<SurveyAnswerItem>> answerItemsByDetailId = answerItems.stream()
+//                .collect(Collectors.groupingBy(item -> item.getSurveyResponseDetail().getId()));
+//
+//        Map<Long, List<SurveyResponseDetail>> detailsByResponseId = responseDetails.stream()
+//                .collect(Collectors.groupingBy(detail -> detail.getSurveyResponse().getId()));
+//
+//        List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> mandatoryQuestions = new ArrayList<>();
+//        List<SurveyDetailResponseDTO.QuestionSatisfactionDistribution> additionalQuestions = new ArrayList<>();
+//
+//        for (Question question : questions) {
+//            Long questionId = question.getId();
+//            String questionText = question.getQuestion();
+//            String answerType = question.getAnswerType();
+//
+//            Map<Integer, Integer> satisfactionDistribution = new HashMap<>();
+//            List<String> textResponses = new ArrayList<>();
+//
+//            for (SurveyResponse response : surveyResponses) {
+//                List<SurveyResponseDetail> details = detailsByResponseId.getOrDefault(response.getId(), List.of());
+//                for (SurveyResponseDetail detail : details) {
+//                    if (!detail.getQuestion().getId().equals(questionId)) continue;
+//
+//                    List<SurveyAnswerItem> items = answerItemsByDetailId.getOrDefault(detail.getId(), List.of());
+//                    for (SurveyAnswerItem item : items) {
+//                        if (item.getAnswerItemType() == AnswerItemType.RADIO && item.getAnswerScore() != null) {
+//                            satisfactionDistribution.merge(item.getAnswerScore(), 1, Integer::sum);
+//                        } else if (item.getAnswerItemType() == AnswerItemType.TEXT) {
+//                            textResponses.add(item.getAnswerItem());
+//                        }
+//                    }
+//                }
+//            }
+//
+//            SurveyDetailResponseDTO.QuestionSatisfactionDistribution dto =
+//                    new SurveyDetailResponseDTO.QuestionSatisfactionDistribution(
+//                            questionId,
+//                            questionText,
+//                            satisfactionDistribution,
+//                            textResponses,
+//                            answerType
+//                    );
+//
+//            if (question.isMandatory()) {
+//                mandatoryQuestions.add(dto);
+//            } else {
+//                additionalQuestions.add(dto);
+//            }
+//        }
+//
+//        SurveyDetailResponseDTO response = SurveyDetailResponseDTO.builder()
+//                .surveyName(survey.getSurveyName())
+//                .deadline(survey.getDeadlineAt())
+//                .mmId(survey.getMonthMenu().getMonthMenuId())
+//                .mandatoryQuestions(mandatoryQuestions)
+//                .additionalQuestions(additionalQuestions)
+//                .build();
+//
+//        return response;
+//    }
+
+
     private SurveyDetailResponseDTO.AverageScores calculateUserAverageScores(List<SurveyAnswerItem> items) {
         Function<String, Double> scoreForQuestion = (questionText) ->
                 items.stream()
@@ -298,7 +385,7 @@ public class SurveyService {
 
 
     @Transactional
-    public SurveyResponseResponseDTO submitSurveyResponse(Long surveyId, SurveyResponseRequestDTO surveyResponseRequestDTO) {
+    public SurveyResponseResponseDTO submitSurveyResponse(UUID surveyId, SurveyResponseRequestDTO surveyResponseRequestDTO) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
@@ -402,7 +489,7 @@ public class SurveyService {
     }
 
 
-    public void deleteSurvey(Long surveyId) {
+    public void deleteSurvey(UUID surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 
@@ -425,7 +512,7 @@ public class SurveyService {
     }
 
     @Transactional
-    public SurveyUpdateResponseDTO updateSurvey(Long surveyId, SurveyUpdateRequestDTO requestDTO) {
+    public SurveyUpdateResponseDTO updateSurvey(UUID surveyId, SurveyUpdateRequestDTO requestDTO) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SURVEY_NOT_FOUND));
 

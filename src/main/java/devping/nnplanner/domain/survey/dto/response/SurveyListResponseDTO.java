@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -27,14 +28,14 @@ public class SurveyListResponseDTO {
     @Getter
     @Setter
     public static class SurveyItemResponseDTO {
-        private Long surveyId;
+        private UUID surveyId;
         private String surveyName;
         private LocalDateTime createdAt;
         private LocalDateTime deadlineAt;
         private String state;
 
         // 생성자
-        public SurveyItemResponseDTO(Long surveyId, String surveyName, LocalDateTime createdAt, LocalDateTime deadlineAt, String state) {
+        public SurveyItemResponseDTO(UUID surveyId, String surveyName, LocalDateTime createdAt, LocalDateTime deadlineAt, String state) {
             this.surveyId = surveyId;
             this.surveyName = surveyName;
             this.createdAt = createdAt;
