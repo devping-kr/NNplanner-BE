@@ -163,4 +163,19 @@ public class JwtUtil {
         }
 
     }
+
+    // 토큰이 만료되었는지 확인
+    public boolean isTokenExpired(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSignKey(secret))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true; // 파싱 시점에 만료되어 예외가 터진 경우도 true
+        }
+    }
+
 }

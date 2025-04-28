@@ -42,10 +42,17 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             tokenValue = jwtUtil.substringToken(tokenValue);
 
             try {
-                jwtUtil.validateToken(tokenValue);
+                if(!jwtUtil.isTokenExpired(tokenValue)) {
+                    jwtUtil.validateToken(tokenValue);
 
-                Claims userinfo = jwtUtil.getUserInfoFromToken(tokenValue);
-                setAuthentication(userinfo.getSubject());
+                    Claims userinfo = jwtUtil.getUserInfoFromToken(tokenValue);
+                    setAuthentication(userinfo.getSubject());
+                }
+                else {
+                    // 유효한 토큰만 인증하도록 등록
+                    // 토큰이 만료되도 410 등을 던지지 않는다.
+                    log.info("JWT iS expired ");
+                }
 
             } catch (CustomException e) {
                 setErrorResponse(response, e.getErrorCode());
